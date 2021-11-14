@@ -23,7 +23,7 @@ WINNER_DICT = {
         "r": -1,
         "p": 1,
         "s": 0,
-    }
+    },
 }
 
 
@@ -37,14 +37,18 @@ class RPS(commands.Cog):
         player_mention = ctx.author.mention
 
         if move not in CHOICES and move not in SHORT_CHOICES:
-            raise commands.BadArgument(f"Invalid move. Please make move from options: {', '.join(CHOICES).upper()}.")
+            raise commands.BadArgument(
+                f"Invalid move. Please make move from options: {', '.join(CHOICES).upper()}."
+            )
 
         bot_move = choice(CHOICES)
         # value of player_result will be from (-1, 0, 1) as (lost, tied, won).
         player_result = WINNER_DICT[move[0]][bot_move[0]]
 
         if player_result == 0:
-            message_string = f"{player_mention} You and Sir Lancebot played {bot_move}, it's a tie."
+            message_string = (
+                f"{player_mention} You and Sir Lancebot played {bot_move}, it's a tie."
+            )
             await ctx.send(message_string)
         elif player_result == 1:
             await ctx.send(f"Sir Lancebot played {bot_move}! {player_mention} won!")

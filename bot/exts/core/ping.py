@@ -34,7 +34,7 @@ class Ping(commands.Cog):
             seconds=-difference.seconds,
             minutes=-difference.minutes,
             hours=-difference.hours,
-            days=-difference.days
+            days=-difference.days,
         ).humanize()
 
         await ctx.send(f"I started up {uptime_string}.")

@@ -28,7 +28,7 @@ class Game:
         player1: discord.Member,
         player2: Optional[discord.Member],
         tokens: list[str],
-        size: int = 7
+        size: int = 7,
     ):
         self.bot = bot
         self.channel = channel
@@ -39,7 +39,7 @@ class Game:
         self.grid = self.generate_board(size)
         self.grid_size = size
 
-        self.unicode_numbers = NUMBERS[:self.grid_size]
+        self.unicode_numbers = NUMBERS[: self.grid_size]
 
         self.message = None
 
@@ -59,7 +59,7 @@ class Game:
         )
 
         rows = [" ".join(self.tokens[s] for s in row) for row in self.grid]
-        first_row = " ".join(x for x in NUMBERS[:self.grid_size])
+        first_row = " ".join(x for x in NUMBERS[: self.grid_size])
         formatted_grid = "\n".join([first_row] + rows)
         embed = discord.Embed(title=title, description=formatted_grid)
 
@@ -72,12 +72,18 @@ class Game:
             await self.message.add_reaction(CROSS_EMOJI)
             await self.message.edit(content=None, embed=embed)
 
-    async def game_over(self, action: str, player1: discord.user, player2: discord.user) -> None:
+    async def game_over(
+        self, action: str, player1: discord.user, player2: discord.user
+    ) -> None:
         """Announces to public chat."""
         if action == "win":
-            await self.channel.send(f"Game Over! {player1.mention} won against {player2.mention}")
+            await self.channel.send(
+                f"Game Over! {player1.mention} won against {player2.mention}"
+            )
         elif action == "draw":
-            await self.channel.send(f"Game Over! {player1.mention} {player2.mention} It's A Draw :tada:")
+            await self.channel.send(
+                f"Game Over! {player1.mention} {player2.mention} It's A Draw :tada:"
+            )
         elif action == "quit":
             await self.channel.send(f"{self.player1.mention} surrendered. Game over!")
         await self.print_grid()
@@ -94,8 +100,12 @@ class Game:
                 if not coords:
                     await self.game_over(
                         "draw",
-                        self.bot.user if isinstance(self.player_active, AI) else self.player_active,
-                        self.bot.user if isinstance(self.player_inactive, AI) else self.player_inactive,
+                        self.bot.user
+                        if isinstance(self.player_active, AI)
+                        else self.player_active,
+                        self.bot.user
+                        if isinstance(self.player_inactive, AI)
+                        else self.player_inactive,
                     )
             else:
                 coords = await self.player_turn()
@@ -106,12 +116,19 @@ class Game:
             if self.check_win(coords, 1 if self.player_active == self.player1 else 2):
                 await self.game_over(
                     "win",
-                    self.bot.user if isinstance(self.player_active, AI) else self.player_active,
-                    self.bot.user if isinstance(self.player_inactive, AI) else self.player_inactive,
+                    self.bot.user
+                    if isinstance(self.player_active, AI)
+                    else self.player_active,
+                    self.bot.user
+                    if isinstance(self.player_inactive, AI)
+                    else self.player_inactive,
                 )
                 return
 
-            self.player_active, self.player_inactive = self.player_inactive, self.player_active
+            self.player_active, self.player_inactive = (
+                self.player_inactive,
+                self.player_active,
+            )
 
     def predicate(self, reaction: discord.Reaction, user: discord.Member) -> bool:
         """The predicate to check for the player's reaction."""
@@ -129,14 +146,20 @@ class Game:
         player_num = 1 if self.player_active == self.player1 else 2
         while True:
             try:
-                reaction, user = await self.bot.wait_for("reaction_add", check=self.predicate, timeout=30.0)
+                reaction, user = await self.bot.wait_for(
+                    "reaction_add", check=self.predicate, timeout=30.0
+                )
             except asyncio.TimeoutError:
-                await self.channel.send(f"{self.player_active.mention}, you took too long. Game over!")
+                await self.channel.send(
+                    f"{self.player_active.mention}, you took too long. Game over!"
+                )
                 return
             else:
                 await message.delete()
                 if str(reaction.emoji) == CROSS_EMOJI:
-                    await self.game_over("quit", self.player_active, self.player_inactive)
+                    await self.game_over(
+                        "quit", self.player_active, self.player_inactive
+                    )
                     return
 
                 await self.message.remove_reaction(reaction, user)
@@ -148,7 +171,9 @@ class Game:
                     if not square:
                         self.grid[row_num][column_num] = player_num
                         return row_num, column_num
-                message = await self.channel.send(f"Column {column_num + 1} is full. Try again")
+                message = await self.channel.send(
+                    f"Column {column_num + 1} is full. Try again"
+                )
 
     def check_win(self, coords: Coordinate, player_num: int) -> bool:
         """Check that placing a counter here would cause the player to win."""
@@ -289,10 +314,12 @@ class ConnectFour(commands.Cog):
         ctx: commands.Context,
         announcement: discord.Message,
         reaction: discord.Reaction,
-        user: discord.Member
+        user: discord.Member,
     ) -> bool:
         """Predicate checking the criteria for the announcement message."""
-        if self.already_playing(ctx.author):  # If they've joined a game since requesting a player 2
+        if self.already_playing(
+            ctx.author
+        ):  # If they've joined a game since requesting a player 2
             return True  # Is dealt with later on
 
         if (
@@ -301,14 +328,18 @@ class ConnectFour(commands.Cog):
             and reaction.message.id == announcement.id
         ):
             if self.already_playing(user):
-                self.bot.loop.create_task(ctx.send(f"{user.mention} You're already playing a game!"))
+                self.bot.loop.create_task(
+                    ctx.send(f"{user.mention} You're already playing a game!")
+                )
                 self.bot.loop.create_task(announcement.remove_reaction(reaction, user))
                 return False
 
             if user in self.waiting:
-                self.bot.loop.create_task(ctx.send(
-                    f"{user.mention} Please cancel your game first before joining another one."
-                ))
+                self.bot.loop.create_task(
+                    ctx.send(
+                        f"{user.mention} Please cancel your game first before joining another one."
+                    )
+                )
                 self.bot.loop.create_task(announcement.remove_reaction(reaction, user))
                 return False
 
@@ -327,9 +358,7 @@ class ConnectFour(commands.Cog):
         return any(player in (game.player1, game.player2) for game in self.games)
 
     @staticmethod
-    def check_emojis(
-        e1: EMOJI_CHECK, e2: EMOJI_CHECK
-    ) -> tuple[bool, Optional[str]]:
+    def check_emojis(e1: EMOJI_CHECK, e2: EMOJI_CHECK) -> tuple[bool, Optional[str]]:
         """Validate the emojis, the user put."""
         if isinstance(e1, str) and emojis.count(e1) != 1:
             return False, e1
@@ -343,20 +372,24 @@ class ConnectFour(commands.Cog):
         user: Optional[discord.Member],
         board_size: int,
         emoji1: str,
-        emoji2: str
+        emoji2: str,
     ) -> None:
         """Helper for playing a game of connect four."""
         self.tokens = [":white_circle:", str(emoji1), str(emoji2)]
         game = None  # if game fails to intialize in try...except
 
         try:
-            game = Game(self.bot, ctx.channel, ctx.author, user, self.tokens, size=board_size)
+            game = Game(
+                self.bot, ctx.channel, ctx.author, user, self.tokens, size=board_size
+            )
             self.games.append(game)
             await game.start_game()
             self.games.remove(game)
         except Exception:
             # End the game in the event of an unforeseen error so the players aren't stuck in a game
-            await ctx.send(f"{ctx.author.mention} {user.mention if user else ''} An error occurred. Game failed.")
+            await ctx.send(
+                f"{ctx.author.mention} {user.mention if user else ''} An error occurred. Game failed."
+            )
             if game in self.games:
                 self.games.remove(game)
             raise
@@ -365,14 +398,14 @@ class ConnectFour(commands.Cog):
     @commands.group(
         invoke_without_command=True,
         aliases=("4inarow", "connect4", "connectfour", "c4"),
-        case_insensitive=True
+        case_insensitive=True,
     )
     async def connect_four(
         self,
         ctx: commands.Context,
         board_size: int = 7,
         emoji1: EMOJI_CHECK = "\U0001f535",
-        emoji2: EMOJI_CHECK = "\U0001f534"
+        emoji2: EMOJI_CHECK = "\U0001f534",
     ) -> None:
         """
         Play the classic game of Connect Four with someone!
@@ -402,7 +435,7 @@ class ConnectFour(commands.Cog):
             reaction, user = await self.bot.wait_for(
                 "reaction_add",
                 check=partial(self.get_player, ctx, announcement),
-                timeout=60.0
+                timeout=60.0,
             )
         except asyncio.TimeoutError:
             self.waiting.remove(ctx.author)
@@ -433,7 +466,7 @@ class ConnectFour(commands.Cog):
         ctx: commands.Context,
         board_size: int = 7,
         emoji1: EMOJI_CHECK = "\U0001f535",
-        emoji2: EMOJI_CHECK = "\U0001f534"
+        emoji2: EMOJI_CHECK = "\U0001f534",
     ) -> None:
         """Play Connect Four against a computer player."""
         check, emoji = self.check_emojis(emoji1, emoji2)

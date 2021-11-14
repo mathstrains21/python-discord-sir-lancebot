@@ -28,15 +28,16 @@ class Bookmark(commands.Cog):
     def build_bookmark_dm(target_message: discord.Message, title: str) -> discord.Embed:
         """Build the embed to DM the bookmark requester."""
         embed = discord.Embed(
-            title=title,
-            description=target_message.content,
-            colour=Colours.soft_green
+            title=title, description=target_message.content, colour=Colours.soft_green
         )
         embed.add_field(
             name="Wanna give it a visit?",
-            value=f"[Visit original message]({target_message.jump_url})"
+            value=f"[Visit original message]({target_message.jump_url})",
         )
-        embed.set_author(name=target_message.author, icon_url=target_message.author.display_avatar.url)
+        embed.set_author(
+            name=target_message.author,
+            icon_url=target_message.author.display_avatar.url,
+        )
         embed.set_thumbnail(url=Icons.bookmark)
 
         return embed
@@ -47,7 +48,7 @@ class Bookmark(commands.Cog):
         return discord.Embed(
             title=random.choice(ERROR_REPLIES),
             description=f"{user.mention}, please enable your DMs to receive the bookmark.",
-            colour=Colours.soft_red
+            colour=Colours.soft_red,
         )
 
     async def action_bookmark(
@@ -55,7 +56,7 @@ class Bookmark(commands.Cog):
         channel: discord.TextChannel,
         user: discord.Member,
         target_message: discord.Message,
-        title: str
+        title: str,
     ) -> None:
         """Sends the bookmark DM, or sends an error embed when a user bookmarks a message."""
         try:
@@ -65,12 +66,13 @@ class Bookmark(commands.Cog):
             error_embed = self.build_error_embed(user)
             await channel.send(embed=error_embed)
         else:
-            log.info(f"{user} bookmarked {target_message.jump_url} with title '{title}'")
+            log.info(
+                f"{user} bookmarked {target_message.jump_url} with title '{title}'"
+            )
 
     @staticmethod
     async def send_reaction_embed(
-        channel: discord.TextChannel,
-        target_message: discord.Message
+        channel: discord.TextChannel, target_message: discord.Message
     ) -> discord.Message:
         """Sends an embed, with a reaction, so users can react to bookmark the message too."""
         message = await channel.send(
@@ -79,7 +81,7 @@ class Bookmark(commands.Cog):
                     f"React with {BOOKMARK_EMOJI} to be sent your very own bookmark to "
                     f"[this message]({target_message.jump_url})."
                 ),
-                colour=Colours.soft_green
+                colour=Colours.soft_green,
             )
         )
 
@@ -93,7 +95,7 @@ class Bookmark(commands.Cog):
         ctx: commands.Context,
         target_message: Optional[WrappedMessageConverter],
         *,
-        title: str = "Bookmark"
+        title: str = "Bookmark",
     ) -> None:
         """Send the author a link to `target_message` via DMs."""
         if not target_message:
@@ -110,11 +112,13 @@ class Bookmark(commands.Cog):
         # Prevent users from bookmarking a message in a channel they don't have access to
         permissions = target_message.channel.permissions_for(ctx.author)
         if not permissions.read_messages:
-            log.info(f"{ctx.author} tried to bookmark a message in #{target_message.channel} but has no permissions.")
+            log.info(
+                f"{ctx.author} tried to bookmark a message in #{target_message.channel} but has no permissions."
+            )
             embed = discord.Embed(
                 title=random.choice(ERROR_REPLIES),
                 color=Colours.soft_red,
-                description="You don't have permission to view this channel."
+                description="You don't have permission to view this channel.",
             )
             await ctx.send(embed=embed)
             return
@@ -123,17 +127,20 @@ class Bookmark(commands.Cog):
             """Make sure that this reaction is what we want to operate on."""
             return (
                 # Conditions for a successful pagination:
-                all((
-                    # Reaction is on this message
-                    reaction.message.id == reaction_message.id,
-                    # User has not already bookmarked this message
-                    user.id not in bookmarked_users,
-                    # Reaction is the `BOOKMARK_EMOJI` emoji
-                    str(reaction.emoji) == BOOKMARK_EMOJI,
-                    # Reaction was not made by the Bot
-                    user.id != self.bot.user.id
-                ))
+                all(
+                    (
+                        # Reaction is on this message
+                        reaction.message.id == reaction_message.id,
+                        # User has not already bookmarked this message
+                        user.id not in bookmarked_users,
+                        # Reaction is the `BOOKMARK_EMOJI` emoji
+                        str(reaction.emoji) == BOOKMARK_EMOJI,
+                        # Reaction was not made by the Bot
+                        user.id != self.bot.user.id,
+                    )
+                )
             )
+
         await self.action_bookmark(ctx.channel, ctx.author, target_message, title)
 
         # Keep track of who has already bookmarked, so users can't spam reactions and cause loads of DMs
@@ -142,11 +149,15 @@ class Bookmark(commands.Cog):
 
         while True:
             try:
-                _, user = await self.bot.wait_for("reaction_add", timeout=TIMEOUT, check=event_check)
+                _, user = await self.bot.wait_for(
+                    "reaction_add", timeout=TIMEOUT, check=event_check
+                )
             except asyncio.TimeoutError:
                 log.debug("Timed out waiting for a reaction")
                 break
-            log.trace(f"{user} has successfully bookmarked from a reaction, attempting to DM them.")
+            log.trace(
+                f"{user} has successfully bookmarked from a reaction, attempting to DM them."
+            )
             await self.action_bookmark(ctx.channel, user, target_message, title)
             bookmarked_users.append(user.id)
 

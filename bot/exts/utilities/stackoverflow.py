@@ -11,11 +11,7 @@ from bot.constants import Colours, Emojis
 logger = logging.getLogger(__name__)
 
 BASE_URL = "https://api.stackexchange.com/2.2/search/advanced"
-SO_PARAMS = {
-    "order": "desc",
-    "sort": "activity",
-    "site": "stackoverflow"
-}
+SO_PARAMS = {"order": "desc", "sort": "activity", "site": "stackoverflow"}
 SEARCH_URL = "https://stackoverflow.com/search?q={query}"
 ERR_EMBED = Embed(
     title="Error in fetching results from Stackoverflow",
@@ -23,7 +19,7 @@ ERR_EMBED = Embed(
         "Sorry, there was en error while trying to fetch data from the Stackoverflow website. Please try again in some "
         "time. If this issue persists, please contact the staff or send a message in #dev-contrib."
     ),
-    color=Colours.soft_red
+    color=Colours.soft_red,
 )
 
 
@@ -42,13 +38,13 @@ class Stackoverflow(commands.Cog):
             if response.status == 200:
                 data = await response.json()
             else:
-                logger.error(f'Status code is not 200, it is {response.status}')
+                logger.error(f"Status code is not 200, it is {response.status}")
                 await ctx.send(embed=ERR_EMBED)
                 return
-        if not data['items']:
+        if not data["items"]:
             no_search_result = Embed(
                 title=f"No search results found for {search_query}",
-                color=Colours.soft_red
+                color=Colours.soft_red,
             )
             await ctx.send(embed=no_search_result)
             return
@@ -59,11 +55,11 @@ class Stackoverflow(commands.Cog):
             title="Search results - Stackoverflow",
             url=SEARCH_URL.format(query=encoded_search_query),
             description=f"Here are the top {len(top5)} results:",
-            color=Colours.orange
+            color=Colours.orange,
         )
         for item in top5:
             embed.add_field(
-                name=unescape(item['title']),
+                name=unescape(item["title"]),
                 value=(
                     f"[{Emojis.reddit_upvote} {item['score']}    "
                     f"{Emojis.stackoverflow_views} {item['view_count']}     "
@@ -71,14 +67,15 @@ class Stackoverflow(commands.Cog):
                     f"{Emojis.stackoverflow_tag} {', '.join(item['tags'][:3])}]"
                     f"({item['link']})"
                 ),
-                inline=False)
+                inline=False,
+            )
         embed.set_footer(text="View the original link for more results.")
         try:
             await ctx.send(embed=embed)
         except HTTPException:
             search_query_too_long = Embed(
                 title="Your search query is too long, please try shortening your search query",
-                color=Colours.soft_red
+                color=Colours.soft_red,
             )
             await ctx.send(embed=search_query_too_long)
 

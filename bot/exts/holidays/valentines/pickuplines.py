@@ -11,7 +11,9 @@ from bot.constants import Colours
 
 log = logging.getLogger(__name__)
 
-PICKUP_LINES = loads(Path("bot/resources/holidays/valentines/pickup_lines.json").read_text("utf8"))
+PICKUP_LINES = loads(
+    Path("bot/resources/holidays/valentines/pickup_lines.json").read_text("utf8")
+)
 
 
 class PickupLine(commands.Cog):
@@ -28,11 +30,9 @@ class PickupLine(commands.Cog):
         embed = discord.Embed(
             title=":cheese: Your pickup line :cheese:",
             description=random_line["line"],
-            color=Colours.pink
+            color=Colours.pink,
         )
-        embed.set_thumbnail(
-            url=random_line.get("image", PICKUP_LINES["placeholder"])
-        )
+        embed.set_thumbnail(url=random_line.get("image", PICKUP_LINES["placeholder"]))
         await ctx.send(embed=embed)
 
 

@@ -21,13 +21,20 @@ class MonsterBio(commands.Cog):
 
     def generate_name(self, seeded_random: random.Random) -> str:
         """Generates a name (for either monster species or monster name)."""
-        n_candidate_strings = seeded_random.randint(2, len(TEXT_OPTIONS["monster_type"]))
-        return "".join(seeded_random.choice(TEXT_OPTIONS["monster_type"][i]) for i in range(n_candidate_strings))
+        n_candidate_strings = seeded_random.randint(
+            2, len(TEXT_OPTIONS["monster_type"])
+        )
+        return "".join(
+            seeded_random.choice(TEXT_OPTIONS["monster_type"][i])
+            for i in range(n_candidate_strings)
+        )
 
     @commands.command(brief="Sends your monster bio!")
     async def monsterbio(self, ctx: commands.Context) -> None:
         """Sends a description of a monster."""
-        seeded_random = random.Random(ctx.author.id)  # Seed a local Random instance rather than the system one
+        seeded_random = random.Random(
+            ctx.author.id
+        )  # Seed a local Random instance rather than the system one
 
         name = self.generate_name(seeded_random)
         species = self.generate_name(seeded_random)

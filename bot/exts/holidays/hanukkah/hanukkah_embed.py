@@ -50,15 +50,23 @@ class HanukkahEmbed(commands.Cog):
         hanukkah_end_month = int(self.hanukkah_months[8])
         hanukkah_end_year = int(self.hanukkah_years[8])
 
-        hanukkah_start = datetime.date(hanukkah_start_year, hanukkah_start_month, hanukkah_start_day)
-        hanukkah_end = datetime.date(hanukkah_end_year, hanukkah_end_month, hanukkah_end_day)
+        hanukkah_start = datetime.date(
+            hanukkah_start_year, hanukkah_start_month, hanukkah_start_day
+        )
+        hanukkah_end = datetime.date(
+            hanukkah_end_year, hanukkah_end_month, hanukkah_end_day
+        )
         today = datetime.date.today()
         # today = datetime.date(2019, 12, 24) (for testing)
         day = str(today.day)
         month = str(today.month)
         year = str(today.year)
         embed = Embed(title="Hanukkah", colour=Colours.blue)
-        if day in self.hanukkah_days and month in self.hanukkah_months and year in self.hanukkah_years:
+        if (
+            day in self.hanukkah_days
+            and month in self.hanukkah_months
+            and year in self.hanukkah_years
+        ):
             if int(day) == hanukkah_start_day:
                 now = datetime.datetime.utcnow()
                 hours = now.hour + 4  # using only hours
@@ -81,7 +89,9 @@ class HanukkahEmbed(commands.Cog):
             number_suffixes = ["st", "nd", "rd", "th"]
             suffix = number_suffixes[festival_day - 1 if festival_day <= 3 else 3]
             message = ":menorah:" * festival_day
-            embed.description = f"It is the {festival_day}{suffix} day of Hanukkah!\n{message}"
+            embed.description = (
+                f"It is the {festival_day}{suffix} day of Hanukkah!\n{message}"
+            )
             await ctx.send(embed=embed)
         else:
             if today < hanukkah_start:

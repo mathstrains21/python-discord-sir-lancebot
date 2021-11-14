@@ -8,7 +8,7 @@ from discord.ext import commands
 from bot.bot import Bot
 from bot.constants import Colours, NEGATIVE_REPLIES
 
-API_URL = 'https://quackstack.pythondiscord.com'
+API_URL = "https://quackstack.pythondiscord.com"
 
 log = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ class Quackstack(commands.Cog):
         ctx: commands.Context,
         ducktype: Literal["duck", "manduck"] = "duck",
         *,
-        seed: Optional[str] = None
+        seed: Optional[str] = None,
     ) -> None:
         """
         Use the Quackstack API to generate a random duck.
@@ -62,7 +62,7 @@ class Quackstack(commands.Cog):
             title=f"Quack! Here's a {ducktype} for you.",
             description=f"A {ducktype} from Quackstack.",
             color=Colours.grass_green,
-            url=f"{API_URL}/docs"
+            url=f"{API_URL}/docs",
         )
 
         embed.set_image(url=API_URL + file)

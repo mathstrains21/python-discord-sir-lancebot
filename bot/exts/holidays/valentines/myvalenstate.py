@@ -12,7 +12,9 @@ from bot.constants import Colours
 
 log = logging.getLogger(__name__)
 
-STATES = json.loads(Path("bot/resources/holidays/valentines/valenstates.json").read_text("utf8"))
+STATES = json.loads(
+    Path("bot/resources/holidays/valentines/valenstates.json").read_text("utf8")
+)
 
 
 class MyValenstate(commands.Cog):
@@ -58,19 +60,23 @@ class MyValenstate(commands.Cog):
         embed_title = "But there are more!"
         if len(matches) > 1:
             leftovers = f"{', '.join(matches[:-2])}, and {matches[-1]}"
-            embed_text = f"You have {len(matches)} more matches, these being {leftovers}."
+            embed_text = (
+                f"You have {len(matches)} more matches, these being {leftovers}."
+            )
         elif len(matches) == 1:
             embed_title = "But there's another one!"
             embed_text = f"You have another match, this being {matches[0]}."
         else:
             embed_title = "You have a true match!"
-            embed_text = "This state is your true Valenstate! There are no states that would suit" \
-                         " you better"
+            embed_text = (
+                "This state is your true Valenstate! There are no states that would suit"
+                " you better"
+            )
 
         embed = discord.Embed(
             title=f"Your Valenstate is {valenstate} \u2764",
             description=STATES[valenstate]["text"],
-            colour=Colours.pink
+            colour=Colours.pink,
         )
         embed.add_field(name=embed_title, value=embed_text)
         embed.set_image(url=STATES[valenstate]["flag"])

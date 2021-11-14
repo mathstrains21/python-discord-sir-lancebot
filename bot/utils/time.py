@@ -25,7 +25,9 @@ def _stringify_time_unit(value: int, unit: str) -> str:
         return f"{value} {unit}"
 
 
-def humanize_delta(delta: relativedelta, precision: str = "seconds", max_units: int = 6) -> str:
+def humanize_delta(
+    delta: relativedelta, precision: str = "seconds", max_units: int = 6
+) -> str:
     """
     Returns a human-readable version of the relativedelta.
 
@@ -69,7 +71,9 @@ def humanize_delta(delta: relativedelta, precision: str = "seconds", max_units: 
     return humanized
 
 
-def time_since(past_datetime: datetime.datetime, precision: str = "seconds", max_units: int = 6) -> str:
+def time_since(
+    past_datetime: datetime.datetime, precision: str = "seconds", max_units: int = 6
+) -> str:
     """
     Takes a datetime and returns a human-readable string that describes how long ago that datetime was.
 

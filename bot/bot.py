@@ -101,7 +101,9 @@ class Bot(commands.Bot):
         self._remove_root_aliases(command)
         return command
 
-    async def on_command_error(self, context: commands.Context, exception: DiscordException) -> None:
+    async def on_command_error(
+        self, context: commands.Context, exception: DiscordException
+    ) -> None:
         """Check command errors for UserInputError and reset the cooldown if thrown."""
         if isinstance(exception, commands.UserInputError):
             context.command.reset_cooldown(context)
@@ -123,13 +125,17 @@ class Bot(commands.Bot):
             if channel_id not in all_channels_ids:
                 log.error(f'Channel "{name}" with ID {channel_id} missing')
 
-    async def send_log(self, title: str, details: str = None, *, icon: str = None) -> None:
+    async def send_log(
+        self, title: str, details: str = None, *, icon: str = None
+    ) -> None:
         """Send an embed message to the devlog channel."""
         await self.wait_until_guild_available()
         devlog = self.get_channel(constants.Channels.devlog)
 
         if not devlog:
-            log.info(f"Fetching devlog channel as it wasn't found in the cache (ID: {constants.Channels.devlog})")
+            log.info(
+                f"Fetching devlog channel as it wasn't found in the cache (ID: {constants.Channels.devlog})"
+            )
             try:
                 devlog = await self.fetch_channel(constants.Channels.devlog)
             except discord.HTTPException as discord_exc:
@@ -155,7 +161,9 @@ class Bot(commands.Bot):
             return
 
         if not guild.roles or not guild.members or not guild.channels:
-            log.warning("Guild available event was dispatched but the cache appears to still be empty!")
+            log.warning(
+                "Guild available event was dispatched but the cache appears to still be empty!"
+            )
             return
 
         self._guild_available.set()
@@ -200,7 +208,9 @@ class Bot(commands.Bot):
 
 _allowed_roles = [discord.Object(id_) for id_ in constants.MODERATION_ROLES]
 
-_intents = discord.Intents.default()  # Default is all intents except for privileged ones (Members, Presences, ...)
+_intents = (
+    discord.Intents.default()
+)  # Default is all intents except for privileged ones (Members, Presences, ...)
 _intents.bans = False
 _intents.integrations = False
 _intents.invites = False
@@ -213,7 +223,7 @@ redis_session = RedisSession(
     minsize=1,
     maxsize=20,
     use_fakeredis=constants.RedisConfig.use_fakeredis,
-    global_namespace="sir-lancebot"
+    global_namespace="sir-lancebot",
 )
 loop = asyncio.get_event_loop()
 loop.run_until_complete(redis_session.connect())

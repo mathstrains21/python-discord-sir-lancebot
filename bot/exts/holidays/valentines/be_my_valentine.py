@@ -13,7 +13,13 @@ from bot.utils.extensions import invoke_help_command
 
 log = logging.getLogger(__name__)
 
-HEART_EMOJIS = [":heart:", ":gift_heart:", ":revolving_hearts:", ":sparkling_heart:", ":two_hearts:"]
+HEART_EMOJIS = [
+    ":heart:",
+    ":gift_heart:",
+    ":revolving_hearts:",
+    ":sparkling_heart:",
+    ":two_hearts:",
+]
 
 
 class BeMyValentine(commands.Cog):
@@ -82,7 +88,9 @@ class BeMyValentine(commands.Cog):
         """
         if ctx.guild is None:
             # This command should only be used in the server
-            raise commands.UserInputError("You are supposed to use this command in the server.")
+            raise commands.UserInputError(
+                "You are supposed to use this command in the server."
+            )
 
         if Lovefest.role_id not in [role.id for role in user.roles]:
             raise commands.UserInputError(
@@ -91,7 +99,9 @@ class BeMyValentine(commands.Cog):
 
         if user == ctx.author:
             # Well a user can't valentine himself/herself.
-            raise commands.UserInputError("Come on, you can't send a valentine to yourself :expressionless:")
+            raise commands.UserInputError(
+                "Come on, you can't send a valentine to yourself :expressionless:"
+            )
 
         emoji_1, emoji_2 = self.random_emoji()
         channel = self.bot.get_channel(Channels.community_bot_commands)
@@ -100,7 +110,7 @@ class BeMyValentine(commands.Cog):
         embed = discord.Embed(
             title=f"{emoji_1} {title} {user.display_name} {emoji_2}",
             description=f"{valentine} \n **{emoji_2}From {ctx.author}{emoji_1}**",
-            color=Colours.pink
+            color=Colours.pink,
         )
         await channel.send(user.mention, embed=embed)
 
@@ -127,7 +137,9 @@ class BeMyValentine(commands.Cog):
 
         if user == ctx.author:
             # Well a user cant valentine himself/herself.
-            raise commands.UserInputError("Come on, you can't send a valentine to yourself :expressionless:")
+            raise commands.UserInputError(
+                "Come on, you can't send a valentine to yourself :expressionless:"
+            )
 
         emoji_1, emoji_2 = self.random_emoji()
         valentine, title = self.valentine_check(valentine_type)
@@ -135,13 +147,15 @@ class BeMyValentine(commands.Cog):
         embed = discord.Embed(
             title=f"{emoji_1}{title} {user.display_name}{emoji_2}",
             description=f"{valentine} \n **{emoji_2}From anonymous{emoji_1}**",
-            color=Colours.pink
+            color=Colours.pink,
         )
         await ctx.message.delete()
         try:
             await user.send(embed=embed)
         except discord.Forbidden:
-            raise commands.UserInputError(f"{user} has DMs disabled, so I couldn't send the message. Sorry!")
+            raise commands.UserInputError(
+                f"{user} has DMs disabled, so I couldn't send the message. Sorry!"
+            )
         else:
             await ctx.author.send(f"Your message has been sent to {user}")
 

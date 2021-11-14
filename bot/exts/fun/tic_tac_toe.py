@@ -42,12 +42,15 @@ class Player:
         self.ctx = ctx
         self.symbol = symbol
 
-    async def get_move(self, board: dict[int, str], msg: discord.Message) -> tuple[bool, Optional[int]]:
+    async def get_move(
+        self, board: dict[int, str], msg: discord.Message
+    ) -> tuple[bool, Optional[int]]:
         """
         Get move from user.
 
         Return is timeout reached and position of field what user will fill when timeout don't reach.
         """
+
         def check_for_move(r: discord.Reaction, u: discord.User) -> bool:
             """Check does user who reacted is user who we want, message is board and emoji is in board values."""
             return (
@@ -58,11 +61,18 @@ class Player:
             )
 
         try:
-            react, _ = await self.ctx.bot.wait_for("reaction_add", timeout=30.0, check=check_for_move)
+            react, _ = await self.ctx.bot.wait_for(
+                "reaction_add", timeout=30.0, check=check_for_move
+            )
         except asyncio.TimeoutError:
             return True, None
         else:
-            return False, list(Emojis.number_emojis.keys())[list(Emojis.number_emojis.values()).index(react.emoji)]
+            return (
+                False,
+                list(Emojis.number_emojis.keys())[
+                    list(Emojis.number_emojis.values()).index(react.emoji)
+                ],
+            )
 
     def __str__(self) -> str:
         """Return mention of user."""
@@ -79,7 +89,11 @@ class AI:
     @staticmethod
     async def get_move(board: dict[int, str], _: discord.Message) -> tuple[bool, int]:
         """Get move from AI. AI use Minimax strategy."""
-        possible_moves = [i for i, emoji in board.items() if emoji in list(Emojis.number_emojis.values())]
+        possible_moves = [
+            i
+            for i, emoji in board.items()
+            if emoji in list(Emojis.number_emojis.values())
+        ]
 
         for symbol in (Emojis.o_square, Emojis.x_square):
             for move in possible_moves:
@@ -119,7 +133,7 @@ class Game:
             6: Emojis.number_emojis[6],
             7: Emojis.number_emojis[7],
             8: Emojis.number_emojis[8],
-            9: Emojis.number_emojis[9]
+            9: Emojis.number_emojis[9],
         }
 
         self.current = self.players[0]
@@ -142,7 +156,7 @@ class Game:
         confirm_message = await self.ctx.send(
             CONFIRMATION_MESSAGE.format(
                 opponent=self.players[1].user.mention,
-                requester=self.players[0].user.mention
+                requester=self.players[0].user.mention,
             )
         )
         await confirm_message.add_reaction(Emojis.confirmation)
@@ -158,9 +172,7 @@ class Game:
 
         try:
             reaction, user = await self.ctx.bot.wait_for(
-                "reaction_add",
-                timeout=60.0,
-                check=confirm_check
+                "reaction_add", timeout=60.0, check=confirm_check
             )
         except asyncio.TimeoutError:
             self.over = True
@@ -186,7 +198,10 @@ class Game:
         """Get formatted tic-tac-toe board for message."""
         board = list(self.board.values())
         return "\n".join(
-            (f"{board[line]} {board[line + 1]} {board[line + 2]}" for line in range(0, len(board), 3))
+            (
+                f"{board[line]} {board[line + 1]} {board[line + 2]}"
+                for line in range(0, len(board), 3)
+            )
         )
 
     async def play(self) -> None:
@@ -207,21 +222,19 @@ class Game:
             if isinstance(self.current, Player):
                 await announce.delete()
             if timeout:
-                await self.ctx.send(f"{self.current.user.mention} ran out of time. Canceling game.")
+                await self.ctx.send(
+                    f"{self.current.user.mention} ran out of time. Canceling game."
+                )
                 self.over = True
                 self.canceled = True
                 return
             self.board[pos] = self.current.symbol
-            await board.edit(
-                embed=discord.Embed(description=self.format_board())
-            )
+            await board.edit(embed=discord.Embed(description=self.format_board()))
             await board.clear_reaction(Emojis.number_emojis[pos])
             if check_win(self.board):
                 self.winner = self.current
                 self.loser = self.next
-                await self.ctx.send(
-                    f":tada: {self.current} won this game! :tada:"
-                )
+                await self.ctx.send(f":tada: {self.current} won this game! :tada:")
                 await board.clear_reactions()
                 break
             self.current, self.next = self.next, self.current
@@ -233,17 +246,25 @@ class Game:
 
 def is_channel_free() -> Callable:
     """Check is channel where command will be invoked free."""
+
     async def predicate(ctx: Context) -> bool:
-        return all(game.channel != ctx.channel for game in ctx.cog.games if not game.over)
+        return all(
+            game.channel != ctx.channel for game in ctx.cog.games if not game.over
+        )
+
     return check(predicate)
 
 
 def is_requester_free() -> Callable:
     """Check is requester not already in any game."""
+
     async def predicate(ctx: Context) -> bool:
         return all(
-            ctx.author not in (player.user for player in game.players) for game in ctx.cog.games if not game.over
+            ctx.author not in (player.user for player in game.players)
+            for game in ctx.cog.games
+            if not game.over
         )
+
     return check(predicate)
 
 
@@ -263,19 +284,24 @@ class TicTacToe(Cog):
             await ctx.send("You can't play against yourself.")
             return
         if opponent is not None and not all(
-            opponent not in (player.user for player in g.players) for g in ctx.cog.games if not g.over
+            opponent not in (player.user for player in g.players)
+            for g in ctx.cog.games
+            if not g.over
         ):
             await ctx.send("Opponent is already in game.")
             return
         if opponent is None:
             game = Game(
                 [Player(ctx.author, ctx, Emojis.x_square), AI(ctx.me, Emojis.o_square)],
-                ctx
+                ctx,
             )
         else:
             game = Game(
-                [Player(ctx.author, ctx, Emojis.x_square), Player(opponent, ctx, Emojis.o_square)],
-                ctx
+                [
+                    Player(ctx.author, ctx, Emojis.x_square),
+                    Player(opponent, ctx, Emojis.o_square),
+                ],
+                ctx,
             )
         self.games.append(game)
         if opponent is not None:
@@ -309,9 +335,7 @@ class TicTacToe(Cog):
                         f"**#{i+1}**: {game.winner} :trophy: vs {game.loser}"
                     )
         await LinePaginator.paginate(
-            log_games,
-            ctx,
-            discord.Embed(title="Most recent Tic Tac Toe games")
+            log_games, ctx, discord.Embed(title="Most recent Tic Tac Toe games")
         )
 
     @tic_tac_toe_logs.command(name="show", aliases=("s",))
@@ -325,7 +349,9 @@ class TicTacToe(Cog):
         if game.draw:
             description = f"{game.players[0]} vs {game.players[1]} (draw)\n\n{game.format_board()}"
         else:
-            description = f"{game.winner} :trophy: vs {game.loser}\n\n{game.format_board()}"
+            description = (
+                f"{game.winner} :trophy: vs {game.loser}\n\n{game.format_board()}"
+            )
 
         embed = discord.Embed(
             title=f"Match #{game_id} Game Board",

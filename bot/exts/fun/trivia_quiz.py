@@ -33,13 +33,11 @@ WRONG_ANS_RESPONSE = [
 
 RULES = (
     "No cheating and have fun!",
-    "Points for each question reduces by 25 after 10s or after a hint. Total time is 30s per question"
+    "Points for each question reduces by 25 after 10s or after a hint. Total time is 30s per question",
 )
 
 WIKI_FEED_API_URL = "https://en.wikipedia.org/api/rest_v1/feed/featured/{date}"
-TRIVIA_QUIZ_ICON = (
-    "https://raw.githubusercontent.com/python-discord/branding/main/icons/trivia_quiz/trivia-quiz-dist.png"
-)
+TRIVIA_QUIZ_ICON = "https://raw.githubusercontent.com/python-discord/branding/main/icons/trivia_quiz/trivia-quiz-dist.png"
 
 
 @dataclass(frozen=True)
@@ -56,8 +54,16 @@ class DynamicQuestionGen:
 
     N_PREFIX_STARTS_AT = 5
     N_PREFIXES = [
-        "penta", "hexa", "hepta", "octa", "nona",
-        "deca", "hendeca", "dodeca", "trideca", "tetradeca",
+        "penta",
+        "hexa",
+        "hepta",
+        "octa",
+        "nona",
+        "deca",
+        "hendeca",
+        "dodeca",
+        "trideca",
+        "tetradeca",
     ]
 
     PLANETS = [
@@ -72,8 +78,14 @@ class DynamicQuestionGen:
     ]
 
     TAXONOMIC_HIERARCHY = [
-        "species", "genus", "family", "order",
-        "class", "phylum", "kingdom", "domain",
+        "species",
+        "genus",
+        "family",
+        "order",
+        "class",
+        "phylum",
+        "kingdom",
+        "domain",
     ]
 
     UNITS_TO_BASE_UNITS = {
@@ -112,8 +124,14 @@ class DynamicQuestionGen:
     @classmethod
     def mod_arith(cls, q_format: str, a_format: str) -> QuizEntry:
         """Generate a basic modular arithmetic question."""
-        quotient, m, b = random.randint(30, 40), random.randint(10, 20), random.randint(200, 350)
-        ans = random.randint(0, 9)  # max remainder is 9, since the minimum modulus is 10
+        quotient, m, b = (
+            random.randint(30, 40),
+            random.randint(10, 20),
+            random.randint(200, 350),
+        )
+        ans = random.randint(
+            0, 9
+        )  # max remainder is 9, since the minimum modulus is 10
         a = quotient * m + ans - b
 
         question = q_format.format(a, b, m)
@@ -189,12 +207,8 @@ class DynamicQuestionGen:
         """Generate a SI base units conversion question."""
         unit = random.choice(list(cls.UNITS_TO_BASE_UNITS))
 
-        question = q_format.format(
-            unit + " " + cls.UNITS_TO_BASE_UNITS[unit][0]
-        )
-        answer = a_format.format(
-            cls.UNITS_TO_BASE_UNITS[unit][1]
-        )
+        question = q_format.format(unit + " " + cls.UNITS_TO_BASE_UNITS[unit][0])
+        answer = a_format.format(cls.UNITS_TO_BASE_UNITS[unit][1])
 
         return QuizEntry(question, [answer], DYNAMICALLY_GEN_VARIATION_TOLERANCE)
 
@@ -217,14 +231,22 @@ class TriviaQuiz(commands.Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
 
-        self.game_status = {}  # A variable to store the game status: either running or not running.
-        self.game_owners = {}  # A variable to store the person's ID who started the quiz game in a channel.
+        self.game_status = (
+            {}
+        )  # A variable to store the game status: either running or not running.
+        self.game_owners = (
+            {}
+        )  # A variable to store the person's ID who started the quiz game in a channel.
 
         self.questions = self.load_questions()
         self.question_limit = 0
 
-        self.player_scores = defaultdict(int)  # A variable to store all player's scores for a bot session.
-        self.game_player_scores = {}  # A variable to store temporary game player's scores.
+        self.player_scores = defaultdict(
+            int
+        )  # A variable to store all player's scores for a bot session.
+        self.game_player_scores = (
+            {}
+        )  # A variable to store temporary game player's scores.
 
         self.categories = {
             "general": "Test your general knowledge.",
@@ -249,10 +271,12 @@ class TriviaQuiz(commands.Cog):
         wiki_questions = []
         # trivia_quiz.json follows a pattern, every new category starts with the next century.
         start_id = 501
-        yesterday = datetime.strftime(datetime.now() - timedelta(1), '%Y/%m/%d')
+        yesterday = datetime.strftime(datetime.now() - timedelta(1), "%Y/%m/%d")
 
         while error_fetches < MAX_ERROR_FETCH_TRIES:
-            async with self.bot.http_session.get(url=WIKI_FEED_API_URL.format(date=yesterday)) as r:
+            async with self.bot.http_session.get(
+                url=WIKI_FEED_API_URL.format(date=yesterday)
+            ) as r:
                 if r.status != 200:
                     error_fetches += 1
                     continue
@@ -267,7 +291,10 @@ class TriviaQuiz(commands.Cog):
                     # Normalize the wikipedia article title to remove all punctuations from it
                     for word in re.split(r"[\s-]", title := article["normalizedtitle"]):
                         cleaned_title = re.sub(
-                            rf'\b{word.strip(string.punctuation)}\b', word, title, flags=re.IGNORECASE
+                            rf"\b{word.strip(string.punctuation)}\b",
+                            word,
+                            title,
+                            flags=re.IGNORECASE,
                         )
 
                     # Since the extract contains the article name sometimes this would replace all the matching words
@@ -279,13 +306,18 @@ class TriviaQuiz(commands.Cog):
                     for word in re.split(r"[\s-]", cleaned_title):
                         word = word.strip(string.punctuation)
                         secret_word = r"\*" * len(word)
-                        question = re.sub(rf'\b{word}\b', f"**{secret_word}**", question, flags=re.IGNORECASE)
+                        question = re.sub(
+                            rf"\b{word}\b",
+                            f"**{secret_word}**",
+                            question,
+                            flags=re.IGNORECASE,
+                        )
 
                     formatted_article_question = {
                         "id": start_id,
                         "question": f"Guess the title of the Wikipedia article.\n\n{question}",
                         "answer": cleaned_title,
-                        "info": article["extract"]
+                        "info": article["extract"],
                     }
                     start_id += 1
                     wiki_questions.append(formatted_article_question)
@@ -297,7 +329,9 @@ class TriviaQuiz(commands.Cog):
             self.questions["wikipedia"] = wiki_questions.copy()
         else:
             del self.categories["wikipedia"]
-            logger.warning(f"Not loading wikipedia guess questions, hit max error fetches: {MAX_ERROR_FETCH_TRIES}.")
+            logger.warning(
+                f"Not loading wikipedia guess questions, hit max error fetches: {MAX_ERROR_FETCH_TRIES}."
+            )
 
     @staticmethod
     def load_questions() -> dict:
@@ -306,8 +340,12 @@ class TriviaQuiz(commands.Cog):
 
         return json.loads(p.read_text(encoding="utf-8"))
 
-    @commands.group(name="quiz", aliases=("trivia", "triviaquiz"), invoke_without_command=True)
-    async def quiz_game(self, ctx: commands.Context, category: Optional[str], questions: Optional[int]) -> None:
+    @commands.group(
+        name="quiz", aliases=("trivia", "triviaquiz"), invoke_without_command=True
+    )
+    async def quiz_game(
+        self, ctx: commands.Context, category: Optional[str], questions: Optional[int]
+    ) -> None:
         """
         Start a quiz!
 
@@ -331,8 +369,7 @@ class TriviaQuiz(commands.Cog):
         # Stop game if running.
         if self.game_status[ctx.channel.id]:
             await ctx.send(
-                "Game is already running... "
-                f"do `{Client.prefix}quiz stop`"
+                "Game is already running... " f"do `{Client.prefix}quiz stop`"
             )
             return
 
@@ -390,7 +427,9 @@ class TriviaQuiz(commands.Cog):
             # Exit quiz if number of questions for a round are already sent.
             if len(done_questions) == self.question_limit and hint_no == 0:
                 await ctx.send("The round has ended.")
-                await self.declare_winner(ctx.channel, self.game_player_scores[ctx.channel.id])
+                await self.declare_winner(
+                    ctx.channel, self.game_player_scores[ctx.channel.id]
+                )
 
                 self.game_status[ctx.channel.id] = False
                 del self.game_owners[ctx.channel.id]
@@ -410,11 +449,15 @@ class TriviaQuiz(commands.Cog):
                 if "dynamic_id" not in question_dict:
                     quiz_entry = QuizEntry(
                         question_dict["question"],
-                        quiz_answers if isinstance(quiz_answers := question_dict["answer"], list) else [quiz_answers],
-                        STANDARD_VARIATION_TOLERANCE
+                        quiz_answers
+                        if isinstance(quiz_answers := question_dict["answer"], list)
+                        else [quiz_answers],
+                        STANDARD_VARIATION_TOLERANCE,
                     )
                 else:
-                    format_func = DYNAMIC_QUESTIONS_FORMAT_FUNCS[question_dict["dynamic_id"]]
+                    format_func = DYNAMIC_QUESTIONS_FORMAT_FUNCS[
+                        question_dict["dynamic_id"]
+                    ]
                     quiz_entry = format_func(
                         question_dict["question"],
                         question_dict["answer"],
@@ -431,17 +474,22 @@ class TriviaQuiz(commands.Cog):
 
                 await ctx.send(embed=embed)
 
-            def check_func(variation_tolerance: int) -> Callable[[discord.Message], bool]:
+            def check_func(
+                variation_tolerance: int,
+            ) -> Callable[[discord.Message], bool]:
                 def contains_correct_answer(m: discord.Message) -> bool:
                     return m.channel == ctx.channel and any(
-                        fuzz.ratio(answer.lower(), m.content.lower()) > variation_tolerance
+                        fuzz.ratio(answer.lower(), m.content.lower())
+                        > variation_tolerance
                         for answer in quiz_entry.answers
                     )
 
                 return contains_correct_answer
 
             try:
-                msg = await self.bot.wait_for("message", check=check_func(quiz_entry.var_tol), timeout=10)
+                msg = await self.bot.wait_for(
+                    "message", check=check_func(quiz_entry.var_tol), timeout=10
+                )
             except asyncio.TimeoutError:
                 # In case of TimeoutError and the game has been stopped, then do nothing.
                 if not self.game_status[ctx.channel.id]:
@@ -478,7 +526,9 @@ class TriviaQuiz(commands.Cog):
 
                     hint_no = 0  # Reset the hint counter so that on the next round, it's in the initial state
 
-                    await self.send_score(ctx.channel, self.game_player_scores[ctx.channel.id])
+                    await self.send_score(
+                        ctx.channel, self.game_player_scores[ctx.channel.id]
+                    )
                     await asyncio.sleep(2)
             else:
                 if self.game_status[ctx.channel.id] is False:
@@ -498,7 +548,9 @@ class TriviaQuiz(commands.Cog):
 
                 hint_no = 0
 
-                await ctx.send(f"{msg.author.mention} got the correct answer :tada: {points} points!")
+                await ctx.send(
+                    f"{msg.author.mention} got the correct answer :tada: {points} points!"
+                )
 
                 await self.send_answer(
                     ctx.channel,
@@ -507,13 +559,17 @@ class TriviaQuiz(commands.Cog):
                     question_dict,
                     self.question_limit - len(done_questions),
                 )
-                await self.send_score(ctx.channel, self.game_player_scores[ctx.channel.id])
+                await self.send_score(
+                    ctx.channel, self.game_player_scores[ctx.channel.id]
+                )
 
                 await asyncio.sleep(2)
 
     def make_start_embed(self, category: str) -> discord.Embed:
         """Generate a starting/introduction embed for the quiz."""
-        rules = "\n".join([f"{index}: {rule}" for index, rule in enumerate(RULES, start=1)])
+        rules = "\n".join(
+            [f"{index}: {rule}" for index, rule in enumerate(RULES, start=1)]
+        )
 
         start_embed = discord.Embed(
             title="Quiz game Starting!!",
@@ -522,7 +578,7 @@ class TriviaQuiz(commands.Cog):
                 f"**Rules :**\n{rules}"
                 f"\n **Category** : {category}"
             ),
-            colour=Colours.blue
+            colour=Colours.blue,
         )
         start_embed.set_thumbnail(url=TRIVIA_QUIZ_ICON)
 
@@ -557,10 +613,14 @@ class TriviaQuiz(commands.Cog):
                     self.game_player_scores[ctx.channel.id] = {}
 
                     await ctx.send("Quiz stopped.")
-                    await self.declare_winner(ctx.channel, self.game_player_scores[ctx.channel.id])
+                    await self.declare_winner(
+                        ctx.channel, self.game_player_scores[ctx.channel.id]
+                    )
 
                 else:
-                    await ctx.send(f"{ctx.author.mention}, you are not authorised to stop this game :ghost:!")
+                    await ctx.send(
+                        f"{ctx.author.mention}, you are not authorised to stop this game :ghost:!"
+                    )
             else:
                 await ctx.send("No quiz running.")
         except KeyError:
@@ -585,7 +645,9 @@ class TriviaQuiz(commands.Cog):
         )
         embed.set_thumbnail(url=TRIVIA_QUIZ_ICON)
 
-        sorted_dict = sorted(player_data.items(), key=operator.itemgetter(1), reverse=True)
+        sorted_dict = sorted(
+            player_data.items(), key=operator.itemgetter(1), reverse=True
+        )
         for item in sorted_dict:
             embed.description += f"{item[0]}: {item[1]}\n"
 
@@ -627,12 +689,13 @@ class TriviaQuiz(commands.Cog):
             description="",
         )
 
-        embed.set_footer(text="If a category is not chosen, a random one will be selected.")
+        embed.set_footer(
+            text="If a category is not chosen, a random one will be selected."
+        )
 
         for cat, description in self.categories.items():
             embed.description += (
-                f"**- {cat.capitalize()}**\n"
-                f"{description.capitalize()}\n"
+                f"**- {cat.capitalize()}**\n" f"{description.capitalize()}\n"
             )
 
         return embed
@@ -664,9 +727,8 @@ class TriviaQuiz(commands.Cog):
             embed.description += f"**Information**\n{info}\n\n"
 
         embed.description += (
-            ("Let's move to the next question." if q_left > 0 else "")
-            + f"\nRemaining questions: {q_left}"
-        )
+            "Let's move to the next question." if q_left > 0 else ""
+        ) + f"\nRemaining questions: {q_left}"
         await channel.send(embed=embed)
 
 

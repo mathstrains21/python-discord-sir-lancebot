@@ -31,7 +31,7 @@ class Catify(commands.Cog):
                         "Your display name is too long to be catified! "
                         "Please change it to be under 26 characters."
                     ),
-                    color=Colours.soft_red
+                    color=Colours.soft_red,
                 )
                 await ctx.send(embed=embed)
                 return
@@ -39,7 +39,10 @@ class Catify(commands.Cog):
             else:
                 display_name += f" | {random.choice(Cats.cats)}"
 
-                await ctx.send(f"Your catified nickname is: `{display_name}`", allowed_mentions=AllowedMentions.none())
+                await ctx.send(
+                    f"Your catified nickname is: `{display_name}`",
+                    allowed_mentions=AllowedMentions.none(),
+                )
 
                 with suppress(Forbidden):
                     await ctx.author.edit(nick=display_name)
@@ -48,7 +51,7 @@ class Catify(commands.Cog):
                 embed = Embed(
                     title=random.choice(NEGATIVE_REPLIES),
                     description="Submitted text was too large! Please submit something under 1500 characters.",
-                    color=Colours.soft_red
+                    color=Colours.soft_red,
                 )
                 await ctx.send(embed=embed)
                 return
@@ -58,9 +61,13 @@ class Catify(commands.Cog):
                 name = name.lower()
                 if "cat" in name:
                     if random.randint(0, 5) == 5:
-                        string_list[index] = name.replace("cat", f"**{random.choice(Cats.cats)}**")
+                        string_list[index] = name.replace(
+                            "cat", f"**{random.choice(Cats.cats)}**"
+                        )
                     else:
-                        string_list[index] = name.replace("cat", random.choice(Cats.cats))
+                        string_list[index] = name.replace(
+                            "cat", random.choice(Cats.cats)
+                        )
                 for element in Cats.cats:
                     if element in name:
                         string_list[index] = name.replace(element, "cat")
@@ -70,15 +77,17 @@ class Catify(commands.Cog):
             for _ in range(random.randint(1, string_len)):
                 # insert cat at random index
                 if random.randint(0, 5) == 5:
-                    string_list.insert(random.randint(0, len(string_list)), f"**{random.choice(Cats.cats)}**")
+                    string_list.insert(
+                        random.randint(0, len(string_list)),
+                        f"**{random.choice(Cats.cats)}**",
+                    )
                 else:
-                    string_list.insert(random.randint(0, len(string_list)), random.choice(Cats.cats))
+                    string_list.insert(
+                        random.randint(0, len(string_list)), random.choice(Cats.cats)
+                    )
 
             text = helpers.suppress_links(" ".join(string_list))
-            await ctx.send(
-                f">>> {text}",
-                allowed_mentions=AllowedMentions.none()
-            )
+            await ctx.send(f">>> {text}", allowed_mentions=AllowedMentions.none())
 
 
 def setup(bot: Bot) -> None:

@@ -32,27 +32,29 @@ class ScaryMovie(commands.Cog):
             "api_key": Tokens.tmdb,
             "with_genres": "27",
             "vote_count.gte": "5",
-            "include_adult": "false"
+            "include_adult": "false",
         }
-        headers = {
-            "Content-Type": "application/json;charset=utf-8"
-        }
+        headers = {"Content-Type": "application/json;charset=utf-8"}
 
         # Get total page count of horror movies
-        async with self.bot.http_session.get(url=url, params=params, headers=headers) as response:
+        async with self.bot.http_session.get(
+            url=url, params=params, headers=headers
+        ) as response:
             data = await response.json()
             total_pages = data.get("total_pages")
 
         # Get movie details from one random result on a random page
         params["page"] = random.randint(1, total_pages)
-        async with self.bot.http_session.get(url=url, params=params, headers=headers) as response:
+        async with self.bot.http_session.get(
+            url=url, params=params, headers=headers
+        ) as response:
             data = await response.json()
             selection_id = random.choice(data.get("results")).get("id")
 
         # Get full details and credits
         async with self.bot.http_session.get(
             url=f"https://api.themoviedb.org/3/movie/{selection_id}",
-            params={"api_key": Tokens.tmdb, "append_to_response": "credits"}
+            params={"api_key": Tokens.tmdb, "append_to_response": "credits"},
         ) as selection:
 
             return await selection.json()
@@ -64,7 +66,9 @@ class ScaryMovie(commands.Cog):
         movie_id = movie.get("id")
         poster_path = movie.get("poster_path")
         tmdb_url = f"https://www.themoviedb.org/movie/{movie_id}" if movie_id else None
-        poster = f"https://image.tmdb.org/t/p/original{poster_path}" if poster_path else None
+        poster = (
+            f"https://image.tmdb.org/t/p/original{poster_path}" if poster_path else None
+        )
 
         # Get cast names
         cast = []
@@ -82,7 +86,7 @@ class ScaryMovie(commands.Cog):
 
         for _ in range(int(rating_count)):
             rating += ":skull:"
-        if (rating_count % 1) >= .5:
+        if (rating_count % 1) >= 0.5:
             rating += ":bat:"
 
         # Try to get year of release and runtime
@@ -100,10 +104,10 @@ class ScaryMovie(commands.Cog):
         }
 
         embed = Embed(
-            colour=0x01d277,
+            colour=0x01D277,
             title=f"**{movie.get('title')}**",
             url=tmdb_url,
-            description=movie.get("overview")
+            description=movie.get("overview"),
         )
 
         if poster:
@@ -114,7 +118,9 @@ class ScaryMovie(commands.Cog):
             if value:
                 embed.add_field(name=name, value=value)
 
-        embed.set_footer(text="This product uses the TMDb API but is not endorsed or certified by TMDb.")
+        embed.set_footer(
+            text="This product uses the TMDb API but is not endorsed or certified by TMDb."
+        )
         embed.set_thumbnail(url="https://i.imgur.com/LtFtC8H.png")
 
         return embed

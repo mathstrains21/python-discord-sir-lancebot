@@ -24,18 +24,20 @@ class Emojis(commands.Cog):
     def embed_builder(emoji: dict) -> tuple[Embed, list[str]]:
         """Generates an embed with the emoji names and count."""
         embed = Embed(
-            color=Colours.orange,
-            title="Emoji Count",
-            timestamp=datetime.utcnow()
+            color=Colours.orange, title="Emoji Count", timestamp=datetime.utcnow()
         )
         msg = []
 
         if len(emoji) == 1:
             for category_name, category_emojis in emoji.items():
                 if len(category_emojis) == 1:
-                    msg.append(f"There is **{len(category_emojis)}** emoji in the **{category_name}** category.")
+                    msg.append(
+                        f"There is **{len(category_emojis)}** emoji in the **{category_name}** category."
+                    )
                 else:
-                    msg.append(f"There are **{len(category_emojis)}** emojis in the **{category_name}** category.")
+                    msg.append(
+                        f"There are **{len(category_emojis)}** emojis in the **{category_name}** category."
+                    )
                 embed.set_thumbnail(url=random.choice(category_emojis).url)
 
         else:
@@ -46,7 +48,9 @@ class Emojis(commands.Cog):
                 else:
                     emoji_info = f"There is **{len(category_emojis)}** emoji in the **{category_name}** category."
                 if emoji_choice.animated:
-                    msg.append(f"<a:{emoji_choice.name}:{emoji_choice.id}> {emoji_info}")
+                    msg.append(
+                        f"<a:{emoji_choice.name}:{emoji_choice.id}> {emoji_info}"
+                    )
                 else:
                     msg.append(f"<:{emoji_choice.name}:{emoji_choice.id}> {emoji_info}")
         return embed, msg
@@ -54,10 +58,7 @@ class Emojis(commands.Cog):
     @staticmethod
     def generate_invalid_embed(emojis: list[Emoji]) -> tuple[Embed, list[str]]:
         """Generates error embed for invalid emoji categories."""
-        embed = Embed(
-            color=Colours.soft_red,
-            title=random.choice(ERROR_REPLIES)
-        )
+        embed = Embed(color=Colours.soft_red, title=random.choice(ERROR_REPLIES))
         msg = []
 
         emoji_dict = defaultdict(list)
@@ -77,14 +78,18 @@ class Emojis(commands.Cog):
             await invoke_help_command(ctx)
 
     @emoji_group.command(name="count", aliases=("c",))
-    async def count_command(self, ctx: commands.Context, *, category_query: str = None) -> None:
+    async def count_command(
+        self, ctx: commands.Context, *, category_query: str = None
+    ) -> None:
         """Returns embed with emoji category and info given by the user."""
         emoji_dict = defaultdict(list)
 
         if not ctx.guild.emojis:
             await ctx.send("No emojis found.")
             return
-        log.trace(f"Emoji Category {'' if category_query else 'not '}provided by the user.")
+        log.trace(
+            f"Emoji Category {'' if category_query else 'not '}provided by the user."
+        )
         for emoji in ctx.guild.emojis:
             emoji_category = emoji.name.split("_")[0]
 
@@ -105,12 +110,14 @@ class Emojis(commands.Cog):
         """Returns relevant information about a Discord Emoji."""
         emoji_information = Embed(
             title=f"Emoji Information: {emoji.name}",
-            description=textwrap.dedent(f"""
+            description=textwrap.dedent(
+                f"""
                 **Name:** {emoji.name}
                 **Created:** {time_since(emoji.created_at.replace(tzinfo=None), precision="hours")}
                 **Date:** {datetime.strftime(emoji.created_at.replace(tzinfo=None), "%d/%m/%Y")}
                 **ID:** {emoji.id}
-            """),
+            """
+            ),
             color=Color.og_blurple(),
             url=str(emoji.url),
         ).set_thumbnail(url=emoji.url)

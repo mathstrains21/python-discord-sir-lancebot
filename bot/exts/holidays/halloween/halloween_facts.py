@@ -24,7 +24,9 @@ SPOOKY_EMOJIS = [
 PUMPKIN_ORANGE = 0xFF7518
 INTERVAL = timedelta(hours=6).total_seconds()
 
-FACTS = json.loads(Path("bot/resources/holidays/halloween/halloween_facts.json").read_text("utf8"))
+FACTS = json.loads(
+    Path("bot/resources/holidays/halloween/halloween_facts.json").read_text("utf8")
+)
 FACTS = list(enumerate(FACTS))
 
 
@@ -35,7 +37,11 @@ class HalloweenFacts(commands.Cog):
         """Return a random fact from the loaded facts."""
         return random.choice(FACTS)
 
-    @commands.command(name="spookyfact", aliases=("halloweenfact",), brief="Get the most recent Halloween fact")
+    @commands.command(
+        name="spookyfact",
+        aliases=("halloweenfact",),
+        brief="Get the most recent Halloween fact",
+    )
     async def get_random_fact(self, ctx: commands.Context) -> None:
         """Reply with the most recent Halloween fact."""
         index, fact = self.random_fact()

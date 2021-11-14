@@ -48,7 +48,7 @@ class CheatSheet(commands.Cog):
         embed = Embed(
             title=random.choice(ERROR_REPLIES),
             description=ERROR_MESSAGE,
-            colour=Colours.soft_red
+            colour=Colours.soft_red,
         )
         return embed
 
@@ -69,9 +69,7 @@ class CheatSheet(commands.Cog):
             )
         else:
             description = (
-                f"**Result Of cht.sh**\n"
-                f"```python\n{body_text}\n```\n"
-                f"{url}"
+                f"**Result Of cht.sh**\n" f"```python\n{body_text}\n```\n" f"{url}"
             )
         return False, description
 
@@ -93,13 +91,12 @@ class CheatSheet(commands.Cog):
             search_string = quote_plus(" ".join(search_terms))
 
             async with self.bot.http_session.get(
-                    URL.format(search=search_string), headers=HEADERS
+                URL.format(search=search_string), headers=HEADERS
             ) as response:
                 result = ANSI_RE.sub("", await response.text()).translate(ESCAPE_TT)
 
             is_embed, description = self.result_fmt(
-                URL.format(search=search_string),
-                result
+                URL.format(search=search_string), result
             )
             if is_embed:
                 await ctx.send(embed=description)

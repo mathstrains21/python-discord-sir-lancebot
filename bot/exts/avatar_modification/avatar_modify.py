@@ -27,7 +27,9 @@ MAX_SQUARES = 10_000
 
 T = TypeVar("T")
 
-GENDER_OPTIONS = json.loads(Path("bot/resources/holidays/pride/gender_options.json").read_text("utf8"))
+GENDER_OPTIONS = json.loads(
+    Path("bot/resources/holidays/pride/gender_options.json").read_text("utf8")
+)
 
 
 async def in_executor(func: Callable[..., T], *args) -> T:
@@ -52,7 +54,9 @@ def file_safe_name(effect: str, display_name: str) -> str:
     file_name = file_name.replace(" ", "_")
 
     # Normalize unicode characters
-    cleaned_filename = unicodedata.normalize("NFKD", file_name).encode("ASCII", "ignore").decode()
+    cleaned_filename = (
+        unicodedata.normalize("NFKD", file_name).encode("ASCII", "ignore").decode()
+    )
 
     # Remove invalid filename characters
     cleaned_filename = "".join(c for c in cleaned_filename if c in valid_filename_chars)
@@ -80,7 +84,9 @@ class AvatarModify(commands.Cog):
             log.debug(f"User {user_id} could not be found.")
             return None
         except discord.HTTPException:
-            log.exception(f"Exception while trying to retrieve user {user_id} from Discord.")
+            log.exception(
+                f"Exception while trying to retrieve user {user_id} from Discord."
+            )
             return None
 
         return user
@@ -107,16 +113,19 @@ class AvatarModify(commands.Cog):
                 PfpEffects.apply_effect,
                 image_bytes,
                 PfpEffects.eight_bitify_effect,
-                file_name
+                file_name,
             )
 
             embed = discord.Embed(
                 title="Your 8-bit avatar",
-                description="Here is your avatar. I think it looks all cool and 'retro'."
+                description="Here is your avatar. I think it looks all cool and 'retro'.",
             )
 
             embed.set_image(url=f"attachment://{file_name}")
-            embed.set_footer(text=f"Made by {ctx.author.display_name}.", icon_url=user.display_avatar.url)
+            embed.set_footer(
+                text=f"Made by {ctx.author.display_name}.",
+                icon_url=user.display_avatar.url,
+            )
 
         await ctx.send(embed=embed, file=file)
 
@@ -128,7 +137,9 @@ class AvatarModify(commands.Cog):
         If no text is provided, the user's profile picture will be reversed.
         """
         if text:
-            await ctx.send(f"> {text[::-1]}", allowed_mentions=discord.AllowedMentions.none())
+            await ctx.send(
+                f"> {text[::-1]}", allowed_mentions=discord.AllowedMentions.none()
+            )
             return
 
         async with ctx.typing():
@@ -141,24 +152,28 @@ class AvatarModify(commands.Cog):
             filename = file_safe_name("reverse_avatar", ctx.author.display_name)
 
             file = await in_executor(
-                PfpEffects.apply_effect,
-                image_bytes,
-                PfpEffects.flip_effect,
-                filename
+                PfpEffects.apply_effect, image_bytes, PfpEffects.flip_effect, filename
             )
 
             embed = discord.Embed(
                 title="Your reversed avatar.",
-                description="Here is your reversed avatar. I think it is a spitting image of you."
+                description="Here is your reversed avatar. I think it is a spitting image of you.",
             )
 
             embed.set_image(url=f"attachment://{filename}")
-            embed.set_footer(text=f"Made by {ctx.author.display_name}.", icon_url=user.display_avatar.url)
+            embed.set_footer(
+                text=f"Made by {ctx.author.display_name}.",
+                icon_url=user.display_avatar.url,
+            )
 
             await ctx.send(embed=embed, file=file)
 
-    @avatar_modify.command(aliases=("easterify",), root_aliases=("easterify", "avatareasterify"))
-    async def avatareasterify(self, ctx: commands.Context, *colours: Union[discord.Colour, str]) -> None:
+    @avatar_modify.command(
+        aliases=("easterify",), root_aliases=("easterify", "avatareasterify")
+    )
+    async def avatareasterify(
+        self, ctx: commands.Context, *colours: Union[discord.Colour, str]
+    ) -> None:
         """
         This "Easterifies" the user's avatar.
 
@@ -167,6 +182,7 @@ class AvatarModify(commands.Cog):
         Colours are split by spaces, unless you wrap the colour name in double quotes.
         Discord colour names, HTML colour names, XKCD colour names and hex values are accepted.
         """
+
         async def send(*args, **kwargs) -> str:
             """
             This replaces the original ctx.send.
@@ -201,25 +217,24 @@ class AvatarModify(commands.Cog):
                 image_bytes,
                 PfpEffects.easterify_effect,
                 file_name,
-                egg
+                egg,
             )
 
             embed = discord.Embed(
                 title="Your Lovely Easterified Avatar!",
-                description="Here is your lovely avatar, all bright and colourful\nwith Easter pastel colours. Enjoy :D"
+                description="Here is your lovely avatar, all bright and colourful\nwith Easter pastel colours. Enjoy :D",
             )
             embed.set_image(url=f"attachment://{file_name}")
-            embed.set_footer(text=f"Made by {ctx.author.display_name}.", icon_url=user.display_avatar.url)
+            embed.set_footer(
+                text=f"Made by {ctx.author.display_name}.",
+                icon_url=user.display_avatar.url,
+            )
 
         await ctx.send(file=file, embed=embed)
 
     @staticmethod
     async def send_pride_image(
-        ctx: commands.Context,
-        image_bytes: bytes,
-        pixels: int,
-        flag: str,
-        option: str
+        ctx: commands.Context, image_bytes: bytes, pixels: int, flag: str, option: str
     ) -> None:
         """Gets and sends the image in an embed. Used by the pride commands."""
         async with ctx.typing():
@@ -231,23 +246,28 @@ class AvatarModify(commands.Cog):
                 PfpEffects.pridify_effect,
                 file_name,
                 pixels,
-                flag
+                flag,
             )
 
             embed = discord.Embed(
                 title="Your Lovely Pride Avatar!",
-                description=f"Here is your lovely avatar, surrounded by\n a beautiful {option} flag. Enjoy :D"
+                description=f"Here is your lovely avatar, surrounded by\n a beautiful {option} flag. Enjoy :D",
             )
             embed.set_image(url=f"attachment://{file_name}")
-            embed.set_footer(text=f"Made by {ctx.author.display_name}.", icon_url=ctx.author.display_avatar.url)
+            embed.set_footer(
+                text=f"Made by {ctx.author.display_name}.",
+                icon_url=ctx.author.display_avatar.url,
+            )
             await ctx.send(file=file, embed=embed)
 
     @avatar_modify.group(
         aliases=("avatarpride", "pridepfp", "prideprofile"),
         root_aliases=("prideavatar", "avatarpride", "pridepfp", "prideprofile"),
-        invoke_without_command=True
+        invoke_without_command=True,
     )
-    async def prideavatar(self, ctx: commands.Context, option: str = "lgbt", pixels: int = 64) -> None:
+    async def prideavatar(
+        self, ctx: commands.Context, option: str = "lgbt", pixels: int = 64
+    ) -> None:
         """
         This surrounds an avatar with a border of a specified LGBT flag.
 
@@ -279,14 +299,14 @@ class AvatarModify(commands.Cog):
         embed = discord.Embed(
             title="I have the following flags:",
             description=options,
-            colour=Colours.soft_red
+            colour=Colours.soft_red,
         )
         await ctx.send(embed=embed)
 
     @avatar_modify.command(
         aliases=("savatar", "spookify"),
         root_aliases=("spookyavatar", "spookify", "savatar"),
-        brief="Spookify an user's avatar."
+        brief="Spookify an user's avatar.",
     )
     async def spookyavatar(self, ctx: commands.Context) -> None:
         """This "spookifies" the user's avatar, with a random *spooky* effect."""
@@ -304,15 +324,18 @@ class AvatarModify(commands.Cog):
                 PfpEffects.apply_effect,
                 image_bytes,
                 spookifications.get_random_effect,
-                file_name
+                file_name,
             )
 
             embed = discord.Embed(
                 title="Is this you or am I just really paranoid?",
-                colour=Colours.soft_red
+                colour=Colours.soft_red,
             )
             embed.set_image(url=f"attachment://{file_name}")
-            embed.set_footer(text=f"Made by {ctx.author.display_name}.", icon_url=ctx.author.display_avatar.url)
+            embed.set_footer(
+                text=f"Made by {ctx.author.display_name}.",
+                icon_url=ctx.author.display_avatar.url,
+            )
 
             await ctx.send(file=file, embed=embed)
 
@@ -326,7 +349,9 @@ class AvatarModify(commands.Cog):
                 return
 
             if not 1 <= squares <= MAX_SQUARES:
-                raise commands.BadArgument(f"Squares must be a positive number less than or equal to {MAX_SQUARES:,}.")
+                raise commands.BadArgument(
+                    f"Squares must be a positive number less than or equal to {MAX_SQUARES:,}."
+                )
 
             sqrt = math.sqrt(squares)
 
@@ -356,13 +381,14 @@ class AvatarModify(commands.Cog):
                 description = f"Here is your avatar. I think it looks a bit *puzzling*\nMade with {squares} squares."
 
             embed = discord.Embed(
-                title=title,
-                description=description,
-                colour=Colours.blue
+                title=title, description=description, colour=Colours.blue
             )
 
             embed.set_image(url=f"attachment://{file_name}")
-            embed.set_footer(text=f"Made by {ctx.author.display_name}", icon_url=user.display_avatar.url)
+            embed.set_footer(
+                text=f"Made by {ctx.author.display_name}",
+                icon_url=user.display_avatar.url,
+            )
 
             await ctx.send(file=file, embed=embed)
 

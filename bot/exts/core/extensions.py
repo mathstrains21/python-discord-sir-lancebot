@@ -66,7 +66,9 @@ class Extension(commands.Converter):
         elif matches:
             return matches[0]
         else:
-            raise commands.BadArgument(f":x: Could not find the extension `{argument}`.")
+            raise commands.BadArgument(
+                f":x: Could not find the extension `{argument}`."
+            )
 
 
 class Extensions(commands.Cog):
@@ -75,7 +77,11 @@ class Extensions(commands.Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
 
-    @group(name="extensions", aliases=("ext", "exts", "c", "cogs"), invoke_without_command=True)
+    @group(
+        name="extensions",
+        aliases=("ext", "exts", "c", "cogs"),
+        invoke_without_command=True,
+    )
     async def extensions_group(self, ctx: Context) -> None:
         """Load, unload, reload, and list loaded extensions."""
         await invoke_help_command(ctx)
@@ -156,7 +162,7 @@ class Extensions(commands.Cog):
         embed.set_author(
             name="Extensions List",
             url=Client.github_bot_repo,
-            icon_url=str(self.bot.user.display_avatar.url)
+            icon_url=str(self.bot.user.display_avatar.url),
         )
 
         lines = []
@@ -168,7 +174,9 @@ class Extensions(commands.Cog):
             extensions = "\n".join(sorted(extensions))
             lines.append(f"**{category}**\n{extensions}\n")
 
-        log.debug(f"{ctx.author} requested a list of all cogs. Returning a paginated list.")
+        log.debug(
+            f"{ctx.author} requested a list of all cogs. Returning a paginated list."
+        )
         await LinePaginator.paginate(lines, ctx, embed, max_size=1200, empty=False)
 
     def group_extension_statuses(self) -> Mapping[str, str]:

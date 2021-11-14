@@ -9,7 +9,14 @@ from discord.ext import commands
 
 from bot.bot import Bot
 from bot.constants import (
-    Categories, Channels, Colours, ERROR_REPLIES, Emojis, NEGATIVE_REPLIES, Tokens, WHITELISTED_CHANNELS
+    Categories,
+    Channels,
+    Colours,
+    ERROR_REPLIES,
+    Emojis,
+    NEGATIVE_REPLIES,
+    Tokens,
+    WHITELISTED_CHANNELS,
 )
 from bot.utils.decorators import whitelist_override
 from bot.utils.extensions import invoke_help_command
@@ -18,11 +25,9 @@ log = logging.getLogger(__name__)
 
 BAD_RESPONSE = {
     404: "Issue/pull request not located! Please enter a valid number!",
-    403: "Rate limit has been hit! Please try again later!"
+    403: "Rate limit has been hit! Please try again later!",
 }
-REQUEST_HEADERS = {
-    "Accept": "application/vnd.github.v3+json"
-}
+REQUEST_HEADERS = {"Accept": "application/vnd.github.v3+json"}
 
 REPOSITORY_ENDPOINT = "https://api.github.com/orgs/{org}/repos?per_page=100&type=public"
 ISSUE_ENDPOINT = "https://api.github.com/repos/{user}/{repository}/issues/{number}"
@@ -32,13 +37,15 @@ if GITHUB_TOKEN := Tokens.github:
     REQUEST_HEADERS["Authorization"] = f"token {GITHUB_TOKEN}"
 
 WHITELISTED_CATEGORIES = (
-    Categories.development, Categories.devprojects, Categories.media, Categories.staff
+    Categories.development,
+    Categories.devprojects,
+    Categories.media,
+    Categories.staff,
 )
 
 CODE_BLOCK_RE = re.compile(
-    r"^`([^`\n]+)`"  # Inline codeblock
-    r"|```(.+?)```",  # Multiline codeblock
-    re.DOTALL | re.MULTILINE
+    r"^`([^`\n]+)`" r"|```(.+?)```",  # Inline codeblock  # Multiline codeblock
+    re.DOTALL | re.MULTILINE,
 )
 
 # Maximum number of issues in one message
@@ -95,10 +102,7 @@ class Issues(commands.Cog):
         return re.sub(CODE_BLOCK_RE, "", message)
 
     async def fetch_issues(
-            self,
-            number: int,
-            repository: str,
-            user: str
+        self, number: int, repository: str, user: str
     ) -> Union[IssueState, FetchError]:
         """
         Retrieve an issue from a GitHub repository.
@@ -115,7 +119,9 @@ class Issues(commands.Cog):
         if r.status == 403:
             if r.headers.get("X-RateLimit-Remaining") == "0":
                 log.info(f"Ratelimit reached while fetching {url}")
-                return FetchError(403, "Ratelimit reached, please retry in a few minutes.")
+                return FetchError(
+                    403, "Ratelimit reached, please retry in a few minutes."
+                )
             return FetchError(403, "Cannot access issue.")
         elif r.status in (404, 410):
             return FetchError(r.status, "Issue not found.")
@@ -136,7 +142,9 @@ class Issues(commands.Cog):
         # we know that a PR has been requested and a call to the pulls API endpoint is necessary
         # to get the desired information for the PR.
         else:
-            log.trace(f"PR provided, querying GH pulls API for additional information: {pulls_url}")
+            log.trace(
+                f"PR provided, querying GH pulls API for additional information: {pulls_url}"
+            )
             async with self.bot.http_session.get(pulls_url) as p:
                 pull_data = await p.json()
                 if pull_data["draft"]:
@@ -151,40 +159,49 @@ class Issues(commands.Cog):
 
         issue_url = json_data.get("html_url")
 
-        return IssueState(repository, number, issue_url, json_data.get("title", ""), emoji)
+        return IssueState(
+            repository, number, issue_url, json_data.get("title", ""), emoji
+        )
 
     @staticmethod
     def format_embed(
         results: list[Union[IssueState, FetchError]],
         user: str,
-        repository: Optional[str] = None
+        repository: Optional[str] = None,
     ) -> discord.Embed:
         """Take a list of IssueState or FetchError and format a Discord embed for them."""
         description_list = []
 
         for result in results:
             if isinstance(result, IssueState):
-                description_list.append(f"{result.emoji} [{result.title}]({result.url})")
+                description_list.append(
+                    f"{result.emoji} [{result.title}]({result.url})"
+                )
             elif isinstance(result, FetchError):
                 description_list.append(f":x: [{result.return_code}] {result.message}")
 
         resp = discord.Embed(
-            colour=Colours.bright_green,
-            description="\n".join(description_list)
+            colour=Colours.bright_green, description="\n".join(description_list)
         )
 
-        embed_url = f"https://github.com/{user}/{repository}" if repository else f"https://github.com/{user}"
+        embed_url = (
+            f"https://github.com/{user}/{repository}"
+            if repository
+            else f"https://github.com/{user}"
+        )
         resp.set_author(name="GitHub", url=embed_url)
         return resp
 
-    @whitelist_override(channels=WHITELISTED_CHANNELS, categories=WHITELISTED_CATEGORIES)
+    @whitelist_override(
+        channels=WHITELISTED_CHANNELS, categories=WHITELISTED_CATEGORIES
+    )
     @commands.command(aliases=("issues", "pr", "prs"))
     async def issue(
         self,
         ctx: commands.Context,
         numbers: commands.Greedy[int],
         repository: str = "sir-lancebot",
-        user: str = "python-discord"
+        user: str = "python-discord",
     ) -> None:
         """Command to retrieve issue(s) from a GitHub repository."""
         # Remove duplicates
@@ -202,13 +219,15 @@ class Issues(commands.Cog):
             err_embed = discord.Embed(
                 title=random.choice(ERROR_REPLIES),
                 color=Colours.soft_red,
-                description=err_message
+                description=err_message,
             )
             await ctx.send(embed=err_embed)
             await invoke_help_command(ctx)
             return
 
-        results = [await self.fetch_issues(number, repository, user) for number in numbers]
+        results = [
+            await self.fetch_issues(number, repository, user) for number in numbers
+        ]
         await ctx.send(embed=self.format_embed(results, user, repository))
 
     @commands.Cog.listener()
@@ -224,7 +243,9 @@ class Issues(commands.Cog):
 
         issues = [
             FoundIssue(*match.group("org", "repo", "number"))
-            for match in AUTOMATIC_REGEX.finditer(self.remove_codeblocks(message.content))
+            for match in AUTOMATIC_REGEX.finditer(
+                self.remove_codeblocks(message.content)
+            )
         ]
         links = []
 
@@ -238,7 +259,7 @@ class Issues(commands.Cog):
                             "You can't retrieve issues from DMs. "
                             f"Try again in <#{Channels.community_bot_commands}>"
                         ),
-                        colour=Colours.soft_red
+                        colour=Colours.soft_red,
                     )
                 )
                 return
@@ -251,7 +272,7 @@ class Issues(commands.Cog):
                 embed = discord.Embed(
                     title=random.choice(ERROR_REPLIES),
                     color=Colours.soft_red,
-                    description=f"Too many issues/PRs! (maximum of {MAXIMUM_ISSUES})"
+                    description=f"Too many issues/PRs! (maximum of {MAXIMUM_ISSUES})",
                 )
                 await message.channel.send(embed=embed, delete_after=5)
                 return
@@ -260,7 +281,7 @@ class Issues(commands.Cog):
                 result = await self.fetch_issues(
                     int(repo_issue.number),
                     repo_issue.repository,
-                    repo_issue.organisation or "python-discord"
+                    repo_issue.organisation or "python-discord",
                 )
                 if isinstance(result, IssueState):
                     links.append(result)

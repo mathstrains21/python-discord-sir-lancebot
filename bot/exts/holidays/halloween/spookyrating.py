@@ -26,7 +26,9 @@ class SpookyRating(commands.Cog):
 
     @commands.command()
     @commands.cooldown(rate=1, per=5, type=commands.BucketType.user)
-    async def spookyrating(self, ctx: commands.Context, who: discord.Member = None) -> None:
+    async def spookyrating(
+        self, ctx: commands.Context, who: discord.Member = None
+    ) -> None:
         """
         Calculates the spooky rating of someone.
 
@@ -49,15 +51,10 @@ class SpookyRating(commands.Cog):
         embed = discord.Embed(
             title=data["title"],
             description=f"{who} scored {spooky_percent}%!",
-            color=Colours.orange
+            color=Colours.orange,
         )
-        embed.add_field(
-            name="A whisper from Satan",
-            value=data["text"]
-        )
-        embed.set_thumbnail(
-            url=data["image"]
-        )
+        embed.add_field(name="A whisper from Satan", value=data["text"])
+        embed.set_thumbnail(url=data["image"])
 
         await ctx.send(embed=embed)
 

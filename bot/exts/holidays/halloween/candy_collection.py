@@ -69,7 +69,9 @@ class CandyCollection(commands.Cog):
 
     @in_month(Month.OCTOBER)
     @commands.Cog.listener()
-    async def on_reaction_add(self, reaction: discord.Reaction, user: Union[discord.User, discord.Member]) -> None:
+    async def on_reaction_add(
+        self, reaction: discord.Reaction, user: Union[discord.User, discord.Member]
+    ) -> None:
         """Add/remove candies from a person if the reaction satisfies criteria."""
         message = reaction.message
         # check to ensure the reactor is human
@@ -89,21 +91,26 @@ class CandyCollection(commands.Cog):
                 return
 
             recent_message_ids = map(
-                lambda m: m.id,
-                await self.hacktober_channel.history(limit=10).flatten()
+                lambda m: m.id, await self.hacktober_channel.history(limit=10).flatten()
             )
             if message.id in recent_message_ids:
                 await self.reacted_msg_chance(message)
             return
 
-        if await self.candy_messages.get(message.id) == "candy" and str(reaction.emoji) == EMOJIS["CANDY"]:
+        if (
+            await self.candy_messages.get(message.id) == "candy"
+            and str(reaction.emoji) == EMOJIS["CANDY"]
+        ):
             await self.candy_messages.delete(message.id)
             if await self.candy_records.contains(user.id):
                 await self.candy_records.increment(user.id)
             else:
                 await self.candy_records.set(user.id, 1)
 
-        elif await self.skull_messages.get(message.id) == "skull" and str(reaction.emoji) == EMOJIS["SKULL"]:
+        elif (
+            await self.skull_messages.get(message.id) == "skull"
+            and str(reaction.emoji) == EMOJIS["SKULL"]
+        ):
             await self.skull_messages.delete(message.id)
 
             if prev_record := await self.candy_records.get(user.id):
@@ -111,7 +118,9 @@ class CandyCollection(commands.Cog):
                 await self.candy_records.decrement(user.id, lost)
 
                 if lost == prev_record:
-                    await CandyCollection.send_spook_msg(user, message.channel, "all of your")
+                    await CandyCollection.send_spook_msg(
+                        user, message.channel, "all of your"
+                    )
                 else:
                     await CandyCollection.send_spook_msg(user, message.channel, lost)
             else:
@@ -155,8 +164,7 @@ class CandyCollection(commands.Cog):
 
     @staticmethod
     async def send_no_candy_spook_message(
-        author: discord.Member,
-        channel: discord.TextChannel
+        author: discord.Member, channel: discord.TextChannel
     ) -> None:
         """An alternative spooky message sent when user has no candies in the collection."""
         embed = discord.Embed(color=author.color)
@@ -178,27 +186,29 @@ class CandyCollection(commands.Cog):
             top_sorted = sorted(
                 ((user_id, score) for user_id, score in records if score > 0),
                 key=lambda x: x[1],
-                reverse=True
+                reverse=True,
             )
             top_five = top_sorted[:5]
 
-            return "\n".join(
-                f"{EMOJIS['MEDALS'][index]} <@{record[0]}>: {record[1]}"
-                for index, record in enumerate(top_five)
-            ) if top_five else "No Candies"
+            return (
+                "\n".join(
+                    f"{EMOJIS['MEDALS'][index]} <@{record[0]}>: {record[1]}"
+                    for index, record in enumerate(top_five)
+                )
+                if top_five
+                else "No Candies"
+            )
 
         e = discord.Embed(colour=discord.Colour.og_blurple())
         e.add_field(
-            name="Top Candy Records",
-            value=generate_leaderboard(),
-            inline=False
+            name="Top Candy Records", value=generate_leaderboard(), inline=False
         )
         e.add_field(
             name="\u200b",
             value="Candies will randomly appear on messages sent. "
-                  "\nHit the candy when it appears as fast as possible to get the candy! "
-                  "\nBut beware the ghosts...",
-            inline=False
+            "\nHit the candy when it appears as fast as possible to get the candy! "
+            "\nBut beware the ghosts...",
+            inline=False,
         )
         await ctx.send(embed=e)
 

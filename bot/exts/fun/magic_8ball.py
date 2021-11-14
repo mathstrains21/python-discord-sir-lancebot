@@ -22,7 +22,9 @@ class Magic8ball(commands.Cog):
             answer = random.choice(ANSWERS)
             await ctx.send(answer)
         else:
-            await ctx.send("Usage: .8ball <question> (minimum length of 3 eg: `will I win?`)")
+            await ctx.send(
+                "Usage: .8ball <question> (minimum length of 3 eg: `will I win?`)"
+            )
 
 
 def setup(bot: Bot) -> None:

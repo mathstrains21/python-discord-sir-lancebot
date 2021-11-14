@@ -4,7 +4,14 @@ from collections.abc import Container, Iterable
 from typing import Callable, Optional
 
 from discord.ext.commands import (
-    BucketType, CheckFailure, Cog, Command, CommandOnCooldown, Context, Cooldown, CooldownMapping
+    BucketType,
+    CheckFailure,
+    Cog,
+    Command,
+    CommandOnCooldown,
+    Context,
+    Cooldown,
+    CooldownMapping,
 )
 
 from bot import constants
@@ -19,7 +26,9 @@ class InWhitelistCheckFailure(CheckFailure):
         self.redirect_channel = redirect_channel
 
         if redirect_channel:
-            redirect_message = f" here. Please use the <#{redirect_channel}> channel instead"
+            redirect_message = (
+                f" here. Please use the <#{redirect_channel}> channel instead"
+            )
         else:
             redirect_message = ""
 
@@ -61,26 +70,40 @@ def in_whitelist_check(
         channels = tuple(channels) + (redirect,)
 
     if channels and ctx.channel.id in channels:
-        log.trace(f"{ctx.author} may use the `{ctx.command.name}` command as they are in a whitelisted channel.")
+        log.trace(
+            f"{ctx.author} may use the `{ctx.command.name}` command as they are in a whitelisted channel."
+        )
         return True
 
     # Only check the category id if we have a category whitelist and the channel has a `category_id`
-    if categories and hasattr(ctx.channel, "category_id") and ctx.channel.category_id in categories:
-        log.trace(f"{ctx.author} may use the `{ctx.command.name}` command as they are in a whitelisted category.")
+    if (
+        categories
+        and hasattr(ctx.channel, "category_id")
+        and ctx.channel.category_id in categories
+    ):
+        log.trace(
+            f"{ctx.author} may use the `{ctx.command.name}` command as they are in a whitelisted category."
+        )
         return True
 
     category = getattr(ctx.channel, "category", None)
     if category and category.name == constants.codejam_categories_name:
-        log.trace(f"{ctx.author} may use the `{ctx.command.name}` command as they are in a codejam team channel.")
+        log.trace(
+            f"{ctx.author} may use the `{ctx.command.name}` command as they are in a codejam team channel."
+        )
         return True
 
     # Only check the roles whitelist if we have one and ensure the author's roles attribute returns
     # an iterable to prevent breakage in DM channels (for if we ever decide to enable commands there).
     if roles and any(r.id in roles for r in getattr(ctx.author, "roles", ())):
-        log.trace(f"{ctx.author} may use the `{ctx.command.name}` command as they have a whitelisted role.")
+        log.trace(
+            f"{ctx.author} may use the `{ctx.command.name}` command as they have a whitelisted role."
+        )
         return True
 
-    log.trace(f"{ctx.author} may not use the `{ctx.command.name}` command within this context.")
+    log.trace(
+        f"{ctx.author} may not use the `{ctx.command.name}` command within this context."
+    )
 
     # Some commands are secret, and should produce no feedback at all.
     if not fail_silently:
@@ -127,8 +150,13 @@ def without_role_check(ctx: Context, *role_ids: int) -> bool:
     return check
 
 
-def cooldown_with_role_bypass(rate: int, per: float, type: BucketType = BucketType.default, *,
-                              bypass_roles: Iterable[int]) -> Callable:
+def cooldown_with_role_bypass(
+    rate: int,
+    per: float,
+    type: BucketType = BucketType.default,
+    *,
+    bypass_roles: Iterable[int],
+) -> Callable:
     """
     Applies a cooldown to a command, but allows members with certain roles to be ignored.
 
@@ -149,7 +177,9 @@ def cooldown_with_role_bypass(rate: int, per: float, type: BucketType = BucketTy
             return
 
         # Cooldown logic, taken from discord.py internals.
-        current = ctx.message.created_at.replace(tzinfo=datetime.timezone.utc).timestamp()
+        current = ctx.message.created_at.replace(
+            tzinfo=datetime.timezone.utc
+        ).timestamp()
         bucket = buckets.get_bucket(ctx.message)
         retry_after = bucket.update_rate_limit(current)
         if retry_after:

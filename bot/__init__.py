@@ -1,5 +1,6 @@
 try:
     from dotenv import load_dotenv
+
     print("Found .env file, loading environment variables from it.")
     load_dotenv(override=True)
 except ModuleNotFoundError:
@@ -34,7 +35,10 @@ os.makedirs(log_dir, exist_ok=True)
 
 # File handler rotates logs every 5 MB
 file_handler = logging.handlers.RotatingFileHandler(
-    log_file, maxBytes=5 * (2**20), backupCount=10, encoding="utf-8",
+    log_file,
+    maxBytes=5 * (2 ** 20),
+    backupCount=10,
+    encoding="utf-8",
 )
 file_handler.setLevel(logging.TRACE if Client.debug else logging.DEBUG)
 
@@ -75,7 +79,11 @@ monkey_patches.patch_typing()
 # Monkey-patch discord.py decorators to use the both the Command and Group subclasses which supports root aliases.
 # Must be patched before any cogs are added.
 commands.command = partial(commands.command, cls=monkey_patches.Command)
-commands.GroupMixin.command = partialmethod(commands.GroupMixin.command, cls=monkey_patches.Command)
+commands.GroupMixin.command = partialmethod(
+    commands.GroupMixin.command, cls=monkey_patches.Command
+)
 
 commands.group = partial(commands.group, cls=monkey_patches.Group)
-commands.GroupMixin.group = partialmethod(commands.GroupMixin.group, cls=monkey_patches.Group)
+commands.GroupMixin.group = partialmethod(
+    commands.GroupMixin.group, cls=monkey_patches.Group
+)

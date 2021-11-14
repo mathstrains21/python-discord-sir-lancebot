@@ -21,7 +21,9 @@ PASTE_URL = "https://paste.pythondiscord.com/documents"
 RAW_PASTE_URL_TEMPLATE = "https://paste.pythondiscord.com/raw/{key}"
 
 # Base API URL for Advent of Code Private Leaderboards
-AOC_API_URL = "https://adventofcode.com/{year}/leaderboard/private/view/{leaderboard_id}.json"
+AOC_API_URL = (
+    "https://adventofcode.com/{year}/leaderboard/private/view/{leaderboard_id}.json"
+)
 AOC_REQUEST_HEADER = {"user-agent": "PythonDiscord AoC Event Bot"}
 
 # Leaderboard Line Template
@@ -119,15 +121,19 @@ def _parse_raw_leaderboard_data(raw_leaderboard_data: dict) -> dict:
                 leaderboard[member_id][f"star_{star}"] += 1
 
                 # Record completion datetime for this participant for this day/star
-                completion_time = datetime.datetime.fromtimestamp(int(data["get_star_ts"]))
+                completion_time = datetime.datetime.fromtimestamp(
+                    int(data["get_star_ts"])
+                )
                 star_results[(day, star)].append(
                     StarResult(member_id=member_id, completion_time=completion_time)
                 )
                 per_day_star_stats[f"{day}-{star}"].append(
-                    {'completion_time': int(data["get_star_ts"]), 'member_name': name}
+                    {"completion_time": int(data["get_star_ts"]), "member_name": name}
                 )
     for key in per_day_star_stats:
-        per_day_star_stats[key] = sorted(per_day_star_stats[key], key=operator.itemgetter('completion_time'))
+        per_day_star_stats[key] = sorted(
+            per_day_star_stats[key], key=operator.itemgetter("completion_time")
+        )
 
     # Now that we have a transposed dataset that holds the completion time of all
     # participants per star, we can compute the rank-based scores each participant
@@ -157,7 +163,11 @@ def _parse_raw_leaderboard_data(raw_leaderboard_data: dict) -> dict:
         # this data to JSON in order to cache it in Redis.
         daily_stats[day] = {"star_one": star_one, "star_two": star_two}
 
-    return {"daily_stats": daily_stats, "leaderboard": sorted_leaderboard, 'per_day_and_star': per_day_star_stats}
+    return {
+        "daily_stats": daily_stats,
+        "leaderboard": sorted_leaderboard,
+        "per_day_and_star": per_day_star_stats,
+    }
 
 
 def _format_leaderboard(leaderboard: dict[str, dict]) -> str:
@@ -169,7 +179,7 @@ def _format_leaderboard(leaderboard: dict[str, dict]) -> str:
                 rank=rank,
                 name=data["name"],
                 score=str(data["score"]),
-                stars=f"({data['star_1']}, {data['star_2']})"
+                stars=f"({data['star_1']}, {data['star_2']})",
             )
         )
 
@@ -178,16 +188,24 @@ def _format_leaderboard(leaderboard: dict[str, dict]) -> str:
 
 async def _leaderboard_request(url: str, board: str, cookies: dict) -> dict[str, Any]:
     """Make a leaderboard request using the specified session cookie."""
-    async with aiohttp.request("GET", url, headers=AOC_REQUEST_HEADER, cookies=cookies) as resp:
+    async with aiohttp.request(
+        "GET", url, headers=AOC_REQUEST_HEADER, cookies=cookies
+    ) as resp:
         # The Advent of Code website redirects silently with a 200 response if a
         # session cookie has expired, is invalid, or was not provided.
         if str(resp.url) != url:
-            log.error(f"Fetching leaderboard `{board}` failed! Check the session cookie.")
-            raise UnexpectedRedirect(f"redirected unexpectedly to {resp.url} for board `{board}`")
+            log.error(
+                f"Fetching leaderboard `{board}` failed! Check the session cookie."
+            )
+            raise UnexpectedRedirect(
+                f"redirected unexpectedly to {resp.url} for board `{board}`"
+            )
 
         # Every status other than `200` is unexpected, not only 400+
         if not resp.status == 200:
-            log.error(f"Unexpected response `{resp.status}` while fetching leaderboard `{board}`")
+            log.error(
+                f"Unexpected response `{resp.status}` while fetching leaderboard `{board}`"
+            )
             raise UnexpectedResponseStatus(f"status `{resp.status}`")
 
         return await resp.json()
@@ -208,10 +226,14 @@ async def _fetch_leaderboard_data() -> dict[str, Any]:
 
         # Two attempts, one with the original session cookie and one with the fallback session
         for attempt in range(1, 3):
-            log.info(f"Attempting to fetch leaderboard `{leaderboard.id}` ({attempt}/2)")
+            log.info(
+                f"Attempting to fetch leaderboard `{leaderboard.id}` ({attempt}/2)"
+            )
             cookies = {"session": leaderboard.session}
             try:
-                raw_data = await _leaderboard_request(leaderboard_url, leaderboard.id, cookies)
+                raw_data = await _leaderboard_request(
+                    leaderboard_url, leaderboard.id, cookies
+                )
             except UnexpectedRedirect:
                 if cookies["session"] == AdventOfCode.fallback_session:
                     log.error("It seems like the fallback cookie has expired!")
@@ -227,11 +249,15 @@ async def _fetch_leaderboard_data() -> dict[str, Any]:
             else:
                 # Get the participants and store their current count.
                 board_participants = raw_data["members"]
-                await _caches.leaderboard_counts.set(leaderboard.id, len(board_participants))
+                await _caches.leaderboard_counts.set(
+                    leaderboard.id, len(board_participants)
+                )
                 participants.update(board_participants)
                 break
         else:
-            log.error(f"reached 'unreachable' state while fetching board `{leaderboard.id}`.")
+            log.error(
+                f"reached 'unreachable' state while fetching board `{leaderboard.id}`."
+            )
             raise FetchingLeaderboardFailedError
 
     log.info(f"Fetched leaderboard information for {len(participants)} participants")
@@ -250,7 +276,9 @@ async def _upload_leaderboard(leaderboard: str) -> str:
     if "key" in resp_json:
         return RAW_PASTE_URL_TEMPLATE.format(key=resp_json["key"])
 
-    log.error(f"Unexpected response from paste service while uploading leaderboard {resp_json}")
+    log.error(
+        f"Unexpected response from paste service while uploading leaderboard {resp_json}"
+    )
     return ""
 
 
@@ -274,7 +302,9 @@ async def fetch_leaderboard(invalidate_cache: bool = False) -> dict:
     # Check if the cached leaderboard contains everything we expect it to. If it
     # does not, this probably means the cache has not been created yet or has
     # expired in Redis. This check also accounts for a malformed cache.
-    if invalidate_cache or any(key not in cached_leaderboard for key in REQUIRED_CACHE_KEYS):
+    if invalidate_cache or any(
+        key not in cached_leaderboard for key in REQUIRED_CACHE_KEYS
+    ):
         log.info("No leaderboard cache available, fetching leaderboards...")
         # Fetch the raw data
         raw_leaderboard_data = await _fetch_leaderboard_data()
@@ -295,7 +325,9 @@ async def fetch_leaderboard(invalidate_cache: bool = False) -> dict:
             "leaderboard_fetched_at": leaderboard_fetched_at,
             "number_of_participants": number_of_participants,
             "daily_stats": json.dumps(parsed_leaderboard_data["daily_stats"]),
-            "leaderboard_per_day_and_star": json.dumps(parsed_leaderboard_data["per_day_and_star"])
+            "leaderboard_per_day_and_star": json.dumps(
+                parsed_leaderboard_data["per_day_and_star"]
+            ),
         }
 
         # Store the new values in Redis
@@ -305,7 +337,7 @@ async def fetch_leaderboard(invalidate_cache: bool = False) -> dict:
         with await _caches.leaderboard_cache._get_pool_connection() as connection:
             await connection.expire(
                 _caches.leaderboard_cache.namespace,
-                AdventOfCode.leaderboard_cache_expiry_seconds
+                AdventOfCode.leaderboard_cache_expiry_seconds,
             )
 
     return cached_leaderboard
@@ -318,8 +350,10 @@ def get_summary_embed(leaderboard: dict) -> discord.Embed:
 
     aoc_embed = discord.Embed(
         colour=Colours.soft_green,
-        timestamp=datetime.datetime.fromisoformat(leaderboard["leaderboard_fetched_at"]),
-        description=f"*The leaderboard is refreshed every {refresh_minutes} minutes.*"
+        timestamp=datetime.datetime.fromisoformat(
+            leaderboard["leaderboard_fetched_at"]
+        ),
+        description=f"*The leaderboard is refreshed every {refresh_minutes} minutes.*",
     )
     aoc_embed.add_field(
         name="Number of Participants",
@@ -364,7 +398,9 @@ async def get_public_join_code(author: discord.Member) -> Optional[str]:
     if previously_assigned_board:
         # Check if their previously assigned board still has room for them
         if current_board_counts.get(previously_assigned_board, 0) < 200:
-            log.info(f"{author} ({author.id}) was already assigned to a board with open slots.")
+            log.info(
+                f"{author} ({author.id}) was already assigned to a board with open slots."
+            )
             return AdventOfCode.leaderboards[previously_assigned_board].join_code
 
         log.info(
@@ -383,7 +419,9 @@ async def get_public_join_code(author: discord.Member) -> Optional[str]:
     best_board, _count = min(current_board_counts.items(), key=operator.itemgetter(1))
 
     if current_board_counts.get(best_board, 0) >= 200:
-        log.warning(f"User {author} `{author.id}` requested a join code, but all boards are full!")
+        log.warning(
+            f"User {author} `{author.id}` requested a join code, but all boards are full!"
+        )
         return
 
     log.info(f"Assigning user {author} ({author.id}) to board `{best_board}`")
@@ -407,12 +445,7 @@ def is_in_advent() -> bool:
 def time_left_to_est_midnight() -> tuple[datetime.datetime, datetime.timedelta]:
     """Calculate the amount of time left until midnight EST/UTC-5."""
     # Change all time properties back to 00:00
-    todays_midnight = arrow.now(EST).replace(
-        microsecond=0,
-        second=0,
-        minute=0,
-        hour=0
-    )
+    todays_midnight = arrow.now(EST).replace(microsecond=0, second=0, minute=0, hour=0)
 
     # We want tomorrow so add a day on
     tomorrow = todays_midnight + datetime.timedelta(days=1)
@@ -467,7 +500,9 @@ async def countdown_status(bot: Bot) -> None:
     await wait_for_advent_of_code(hours_before=2)
 
     # Log that we're going to start with the countdown status.
-    log.info("The Advent of Code has started or will start soon, starting countdown status.")
+    log.info(
+        "The Advent of Code has started or will start soon, starting countdown status."
+    )
 
     # Trying to change status too early in the bot's startup sequence will fail
     # the task because the websocket instance has not yet been created. Waiting
@@ -486,7 +521,9 @@ async def countdown_status(bot: Bot) -> None:
     while arrow.now(EST) < end:
         _, time_left = time_left_to_est_midnight()
 
-        aligned_seconds = int(math.ceil(time_left.seconds / COUNTDOWN_STEP)) * COUNTDOWN_STEP
+        aligned_seconds = (
+            int(math.ceil(time_left.seconds / COUNTDOWN_STEP)) * COUNTDOWN_STEP
+        )
         hours, minutes = aligned_seconds // 3600, aligned_seconds // 60 % 60
 
         if aligned_seconds == 0:
@@ -522,7 +559,9 @@ async def new_puzzle_notification(bot: Bot) -> None:
     # of the release of the first puzzle.
     await wait_for_advent_of_code(hours_before=1)
 
-    log.info("The Advent of Code has started or will start soon, waking up notification task.")
+    log.info(
+        "The Advent of Code has started or will start soon, waking up notification task."
+    )
 
     # Ensure that the guild cache is loaded so we can get the Advent of Code
     # channel and role.
@@ -550,7 +589,9 @@ async def new_puzzle_notification(bot: Bot) -> None:
         # duration is padded with 0.1 second to make sure we wake up after
         # midnight.
         sleep_seconds = time_left.total_seconds() + 0.1
-        log.trace(f"The puzzle notification task will sleep for {sleep_seconds} seconds")
+        log.trace(
+            f"The puzzle notification task will sleep for {sleep_seconds} seconds"
+        )
         await asyncio.sleep(sleep_seconds)
 
         puzzle_url = f"https://adventofcode.com/{AdventOfCode.year}/day/{tomorrow.day}"
@@ -558,10 +599,16 @@ async def new_puzzle_notification(bot: Bot) -> None:
         # Check if the puzzle is already available to prevent our members from spamming
         # the puzzle page before it's available by making a small HEAD request.
         for retry in range(1, 5):
-            log.debug(f"Checking if the puzzle is already available (attempt {retry}/4)")
-            async with bot.http_session.head(puzzle_url, raise_for_status=False) as resp:
+            log.debug(
+                f"Checking if the puzzle is already available (attempt {retry}/4)"
+            )
+            async with bot.http_session.head(
+                puzzle_url, raise_for_status=False
+            ) as resp:
                 if resp.status == 200:
-                    log.debug("Puzzle is available; let's send an announcement message.")
+                    log.debug(
+                        "Puzzle is available; let's send an announcement message."
+                    )
                     break
             log.debug(f"The puzzle is not yet available (status={resp.status})")
             await asyncio.sleep(10)
@@ -579,7 +626,7 @@ async def new_puzzle_notification(bot: Bot) -> None:
                 everyone=False,
                 users=False,
                 roles=[aoc_role],
-            )
+            ),
         )
 
         # Ensure that we don't send duplicate announcements by sleeping to well

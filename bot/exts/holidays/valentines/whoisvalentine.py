@@ -11,7 +11,9 @@ from bot.constants import Colours
 
 log = logging.getLogger(__name__)
 
-FACTS = json.loads(Path("bot/resources/holidays/valentines/valentine_facts.json").read_text("utf8"))
+FACTS = json.loads(
+    Path("bot/resources/holidays/valentines/valentine_facts.json").read_text("utf8")
+)
 
 
 class ValentineFacts(commands.Cog):
@@ -23,11 +25,11 @@ class ValentineFacts(commands.Cog):
         embed = discord.Embed(
             title="Who is Saint Valentine?",
             description=FACTS["whois"],
-            color=Colours.pink
+            color=Colours.pink,
         )
         embed.set_thumbnail(
             url="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Saint_Valentine_-_"
-                "facial_reconstruction.jpg/1024px-Saint_Valentine_-_facial_reconstruction.jpg"
+            "facial_reconstruction.jpg/1024px-Saint_Valentine_-_facial_reconstruction.jpg"
         )
 
         await ctx.send(embed=embed)
@@ -38,7 +40,7 @@ class ValentineFacts(commands.Cog):
         embed = discord.Embed(
             title=choice(FACTS["titles"]),
             description=choice(FACTS["text"]),
-            color=Colours.pink
+            color=Colours.pink,
         )
 
         await ctx.send(embed=embed)

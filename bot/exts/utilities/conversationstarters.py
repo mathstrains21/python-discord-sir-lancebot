@@ -23,7 +23,10 @@ with Path("bot/resources/utilities/py_topics.yaml").open("r", encoding="utf8") a
     PY_TOPICS = yaml.load(f, Loader=yaml.FullLoader)
 
     # Removing `None` from lists of topics, if not a list, it is changed to an empty one.
-    PY_TOPICS = {k: [i for i in v if i] if isinstance(v, list) else [] for k, v in PY_TOPICS.items()}
+    PY_TOPICS = {
+        k: [i for i in v if i] if isinstance(v, list) else []
+        for k, v in PY_TOPICS.items()
+    }
 
     # All the allowed channels that the ".topic" command is allowed to be executed in.
     ALL_ALLOWED_CHANNELS = list(PY_TOPICS.keys()) + list(WHITELISTED_CHANNELS)
@@ -53,7 +56,7 @@ class ConvoStarters(commands.Cog):
         # No matter what, the form will be shown.
         embed = discord.Embed(
             description=f"Suggest more topics [here]({SUGGESTION_FORM})!",
-            color=discord.Colour.og_blurple()
+            color=discord.Colour.og_blurple(),
         )
 
         try:
@@ -70,22 +73,26 @@ class ConvoStarters(commands.Cog):
         command_invoker: Union[discord.User, discord.Member],
         message: discord.Message,
         reaction: discord.Reaction,
-        user: discord.User
+        user: discord.User,
     ) -> bool:
-        user_is_moderator = any(role.id in MODERATION_ROLES for role in getattr(user, "roles", []))
+        user_is_moderator = any(
+            role.id in MODERATION_ROLES for role in getattr(user, "roles", [])
+        )
         user_is_invoker = user.id == command_invoker.id
 
-        is_right_reaction = all((
-            reaction.message.id == message.id,
-            str(reaction.emoji) == "🔄",
-            user_is_moderator or user_is_invoker
-        ))
+        is_right_reaction = all(
+            (
+                reaction.message.id == message.id,
+                str(reaction.emoji) == "🔄",
+                user_is_moderator or user_is_invoker,
+            )
+        )
         return is_right_reaction
 
     async def _listen_for_refresh(
         self,
         command_invoker: Union[discord.User, discord.Member],
-        message: discord.Message
+        message: discord.Message,
     ) -> None:
         await message.add_reaction("🔄")
         while True:
@@ -93,7 +100,7 @@ class ConvoStarters(commands.Cog):
                 reaction, user = await self.bot.wait_for(
                     "reaction_add",
                     check=partial(self._predicate, command_invoker, message),
-                    timeout=60.0
+                    timeout=60.0,
                 )
             except asyncio.TimeoutError:
                 with suppress(discord.NotFound):
@@ -109,7 +116,7 @@ class ConvoStarters(commands.Cog):
                 await message.remove_reaction(reaction, user)
 
     @commands.command()
-    @commands.cooldown(1, 60*2, commands.BucketType.channel)
+    @commands.cooldown(1, 60 * 2, commands.BucketType.channel)
     @whitelist_override(channels=ALL_ALLOWED_CHANNELS)
     async def topic(self, ctx: commands.Context) -> None:
         """

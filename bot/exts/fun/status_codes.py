@@ -40,7 +40,9 @@ class HTTPStatusCodes(commands.Cog):
     async def http_cat(self, ctx: commands.Context, code: int) -> None:
         """Send a cat version of the requested HTTP status code."""
         if code in range(100, 600):
-            await self.build_embed(url=HTTP_CAT_URL.format(code=code), ctx=ctx, code=code)
+            await self.build_embed(
+                url=HTTP_CAT_URL.format(code=code), ctx=ctx, code=code
+            )
             return
         await ctx.send(embed=ERROR_LENGTH_EMBED)
 
@@ -48,7 +50,9 @@ class HTTPStatusCodes(commands.Cog):
     async def http_dog(self, ctx: commands.Context, code: int) -> None:
         """Send a dog version of the requested HTTP status code."""
         if code in range(100, 600):
-            await self.build_embed(url=HTTP_DOG_URL.format(code=code), ctx=ctx, code=code)
+            await self.build_embed(
+                url=HTTP_DOG_URL.format(code=code), ctx=ctx, code=code
+            )
             return
         await ctx.send(embed=ERROR_LENGTH_EMBED)
 
@@ -64,15 +68,15 @@ class HTTPStatusCodes(commands.Cog):
             elif response.status in (302, 404):  # dog URL returns 302 instead of 404
                 if "dog" in url:
                     await ctx.send(
-                        embed=discord.Embed(
-                            title=ERR_404.format(code=code)
-                        ).set_image(url="https://httpstatusdogs.com/img/404.jpg")
+                        embed=discord.Embed(title=ERR_404.format(code=code)).set_image(
+                            url="https://httpstatusdogs.com/img/404.jpg"
+                        )
                     )
                     return
                 await ctx.send(
-                    embed=discord.Embed(
-                        title=ERR_404.format(code=code)
-                    ).set_image(url="https://http.cat/404.jpg")
+                    embed=discord.Embed(title=ERR_404.format(code=code)).set_image(
+                        url="https://http.cat/404.jpg"
+                    )
                 )
             else:
                 await ctx.send(

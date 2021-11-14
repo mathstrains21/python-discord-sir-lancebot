@@ -23,13 +23,13 @@ plt.rcParams.update(
 )
 
 FORMATTED_CODE_REGEX = re.compile(
-    r"(?P<delim>(?P<block>```)|``?)"        # code delimiter: 1-3 backticks; (?P=block) only matches if it's a block
-    r"(?(block)(?:(?P<lang>[a-z]+)\n)?)"    # if we're in a block, match optional language (only letters plus newline)
-    r"(?:[ \t]*\n)*"                        # any blank (empty or tabs/spaces only) lines before the code
-    r"(?P<code>.*?)"                        # extract all code inside the markup
-    r"\s*"                                  # any more whitespace before the end of the code markup
-    r"(?P=delim)",                          # match the exact same delimiter from the start again
-    re.DOTALL | re.IGNORECASE,              # "." also matches newlines, case insensitive
+    r"(?P<delim>(?P<block>```)|``?)"  # code delimiter: 1-3 backticks; (?P=block) only matches if it's a block
+    r"(?(block)(?:(?P<lang>[a-z]+)\n)?)"  # if we're in a block, match optional language (only letters plus newline)
+    r"(?:[ \t]*\n)*"  # any blank (empty or tabs/spaces only) lines before the code
+    r"(?P<code>.*?)"  # extract all code inside the markup
+    r"\s*"  # any more whitespace before the end of the code markup
+    r"(?P=delim)",  # match the exact same delimiter from the start again
+    re.DOTALL | re.IGNORECASE,  # "." also matches newlines, case insensitive
 )
 
 CACHE_DIRECTORY = pathlib.Path("_latex_cache")
@@ -96,6 +96,7 @@ def setup(bot: Bot) -> None:
     # As we have resource issues on this cog,
     # we have it currently disabled while we fix it.
     import logging
+
     logging.info("Latex cog is currently disabled. It won't be loaded.")
     return
     bot.add_cog(Latex())

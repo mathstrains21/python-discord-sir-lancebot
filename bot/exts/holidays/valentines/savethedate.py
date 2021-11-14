@@ -11,9 +11,17 @@ from bot.constants import Colours
 
 log = logging.getLogger(__name__)
 
-HEART_EMOJIS = [":heart:", ":gift_heart:", ":revolving_hearts:", ":sparkling_heart:", ":two_hearts:"]
+HEART_EMOJIS = [
+    ":heart:",
+    ":gift_heart:",
+    ":revolving_hearts:",
+    ":sparkling_heart:",
+    ":two_hearts:",
+]
 
-VALENTINES_DATES = loads(Path("bot/resources/holidays/valentines/date_ideas.json").read_text("utf8"))
+VALENTINES_DATES = loads(
+    Path("bot/resources/holidays/valentines/date_ideas.json").read_text("utf8")
+)
 
 
 class SaveTheDate(commands.Cog):
@@ -28,7 +36,7 @@ class SaveTheDate(commands.Cog):
         embed = discord.Embed(
             title=f"{emoji_1}{random_date['name']}{emoji_2}",
             description=f"{random_date['description']}",
-            colour=Colours.pink
+            colour=Colours.pink,
         )
         await ctx.send(embed=embed)
 

@@ -9,18 +9,12 @@ from bot.constants import Client, GIT_SHA, STAFF_ROLES, WHITELISTED_CHANNELS
 from bot.utils.decorators import whitelist_check
 from bot.utils.extensions import walk_extensions
 
-sentry_logging = LoggingIntegration(
-    level=logging.DEBUG,
-    event_level=logging.WARNING
-)
+sentry_logging = LoggingIntegration(level=logging.DEBUG, event_level=logging.WARNING)
 
 sentry_sdk.init(
     dsn=Client.sentry_dsn,
-    integrations=[
-        sentry_logging,
-        RedisIntegration()
-    ],
-    release=f"sir-lancebot@{GIT_SHA}"
+    integrations=[sentry_logging, RedisIntegration()],
+    release=f"sir-lancebot@{GIT_SHA}",
 )
 
 log = logging.getLogger(__name__)

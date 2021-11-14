@@ -9,10 +9,23 @@ import discord
 from discord.ext import commands
 
 from bot.bot import Bot
-from bot.constants import AdventOfCode as AocConfig, Channels, Colours, Emojis, Month, Roles, WHITELISTED_CHANNELS
+from bot.constants import (
+    AdventOfCode as AocConfig,
+    Channels,
+    Colours,
+    Emojis,
+    Month,
+    Roles,
+    WHITELISTED_CHANNELS,
+)
 from bot.exts.events.advent_of_code import _helpers
 from bot.exts.events.advent_of_code.views.dayandstarview import AoCDropdownView
-from bot.utils.decorators import InChannelCheckFailure, in_month, whitelist_override, with_role
+from bot.utils.decorators import (
+    InChannelCheckFailure,
+    in_month,
+    whitelist_override,
+    with_role,
+)
 from bot.utils.extensions import invoke_help_command
 
 log = logging.getLogger(__name__)
@@ -33,9 +46,13 @@ class AdventOfCode(commands.Cog):
         self.bot = bot
 
         self._base_url = f"https://adventofcode.com/{AocConfig.year}"
-        self.global_leaderboard_url = f"https://adventofcode.com/{AocConfig.year}/leaderboard"
+        self.global_leaderboard_url = (
+            f"https://adventofcode.com/{AocConfig.year}/leaderboard"
+        )
 
-        self.about_aoc_filepath = Path("./bot/resources/events/advent_of_code/about.json")
+        self.about_aoc_filepath = Path(
+            "./bot/resources/events/advent_of_code/about.json"
+        )
         self.cached_about_aoc = self._build_about_embed()
 
         notification_coro = _helpers.new_puzzle_notification(self.bot)
@@ -58,14 +75,16 @@ class AdventOfCode(commands.Cog):
     @adventofcode_group.command(
         name="subscribe",
         aliases=("sub", "notifications", "notify", "notifs"),
-        brief="Notifications for new days"
+        brief="Notifications for new days",
     )
     @whitelist_override(channels=AOC_WHITELIST)
     async def aoc_subscribe(self, ctx: commands.Context) -> None:
         """Assign the role for notifications about new days being ready."""
         current_year = datetime.now().year
         if current_year != AocConfig.year:
-            await ctx.send(f"You can't subscribe to {current_year}'s Advent of Code announcements yet!")
+            await ctx.send(
+                f"You can't subscribe to {current_year}'s Advent of Code announcements yet!"
+            )
             return
 
         role = ctx.guild.get_role(AocConfig.role_id)
@@ -84,7 +103,9 @@ class AdventOfCode(commands.Cog):
             )
 
     @in_month(Month.DECEMBER)
-    @adventofcode_group.command(name="unsubscribe", aliases=("unsub",), brief="Notifications for new days")
+    @adventofcode_group.command(
+        name="unsubscribe", aliases=("unsub",), brief="Notifications for new days"
+    )
     @whitelist_override(channels=AOC_WHITELIST)
     async def aoc_unsubscribe(self, ctx: commands.Context) -> None:
         """Remove the role for notifications about new days being ready."""
@@ -92,11 +113,19 @@ class AdventOfCode(commands.Cog):
 
         if role in ctx.author.roles:
             await ctx.author.remove_roles(role)
-            await ctx.send("Okay! You have been __unsubscribed__ from notifications about new Advent of Code tasks.")
+            await ctx.send(
+                "Okay! You have been __unsubscribed__ from notifications about new Advent of Code tasks."
+            )
         else:
-            await ctx.send("Hey, you don't even get any notifications about new Advent of Code tasks currently anyway.")
+            await ctx.send(
+                "Hey, you don't even get any notifications about new Advent of Code tasks currently anyway."
+            )
 
-    @adventofcode_group.command(name="countdown", aliases=("count", "c"), brief="Return time left until next day")
+    @adventofcode_group.command(
+        name="countdown",
+        aliases=("count", "c"),
+        brief="Return time left until next day",
+    )
     @whitelist_override(channels=AOC_WHITELIST)
     async def aoc_countdown(self, ctx: commands.Context) -> None:
         """Return time left until next day."""
@@ -107,7 +136,9 @@ class AdventOfCode(commands.Cog):
             this_year = arrow.get(datetime(datetime_now.year, 12, 1), _helpers.EST)
             next_year = arrow.get(datetime(datetime_now.year + 1, 12, 1), _helpers.EST)
             deltas = (dec_first - datetime_now for dec_first in (this_year, next_year))
-            delta = min(delta for delta in deltas if delta >= timedelta())  # timedelta() gives 0 duration delta
+            delta = min(
+                delta for delta in deltas if delta >= timedelta()
+            )  # timedelta() gives 0 duration delta
 
             # Add a finer timedelta if there's less than a day left
             if delta.days == 0:
@@ -125,27 +156,39 @@ class AdventOfCode(commands.Cog):
 
         hours, minutes = time_left.seconds // 3600, time_left.seconds // 60 % 60
 
-        await ctx.send(f"There are {hours} hours and {minutes} minutes left until day {tomorrow.day}.")
+        await ctx.send(
+            f"There are {hours} hours and {minutes} minutes left until day {tomorrow.day}."
+        )
 
-    @adventofcode_group.command(name="about", aliases=("ab", "info"), brief="Learn about Advent of Code")
+    @adventofcode_group.command(
+        name="about", aliases=("ab", "info"), brief="Learn about Advent of Code"
+    )
     @whitelist_override(channels=AOC_WHITELIST)
     async def about_aoc(self, ctx: commands.Context) -> None:
         """Respond with an explanation of all things Advent of Code."""
         await ctx.send(embed=self.cached_about_aoc)
 
-    @adventofcode_group.command(name="join", aliases=("j",), brief="Learn how to join the leaderboard (via DM)")
+    @adventofcode_group.command(
+        name="join", aliases=("j",), brief="Learn how to join the leaderboard (via DM)"
+    )
     @whitelist_override(channels=AOC_WHITELIST)
     async def join_leaderboard(self, ctx: commands.Context) -> None:
         """DM the user the information for joining the Python Discord leaderboard."""
         current_year = datetime.now().year
         if current_year != AocConfig.year:
-            await ctx.send(f"The Python Discord leaderboard for {current_year} is not yet available!")
+            await ctx.send(
+                f"The Python Discord leaderboard for {current_year} is not yet available!"
+            )
             return
 
         author = ctx.author
-        log.info(f"{author.name} ({author.id}) has requested a PyDis AoC leaderboard code")
+        log.info(
+            f"{author.name} ({author.id}) has requested a PyDis AoC leaderboard code"
+        )
 
-        if AocConfig.staff_leaderboard_id and any(r.id == Roles.helpers for r in author.roles):
+        if AocConfig.staff_leaderboard_id and any(
+            r.id == Roles.helpers for r in author.roles
+        ):
             join_code = AocConfig.leaderboards[AocConfig.staff_leaderboard_id].join_code
         else:
             try:
@@ -173,8 +216,12 @@ class AdventOfCode(commands.Cog):
         try:
             await author.send("\n".join(info_str))
         except discord.errors.Forbidden:
-            log.debug(f"{author.name} ({author.id}) has disabled DMs from server members")
-            await ctx.send(f":x: {author.mention}, please (temporarily) enable DMs to receive the join code")
+            log.debug(
+                f"{author.name} ({author.id}) has disabled DMs from server members"
+            )
+            await ctx.send(
+                f":x: {author.mention}, please (temporarily) enable DMs to receive the join code"
+            )
         else:
             await ctx.message.add_reaction(Emojis.envelope)
 
@@ -186,10 +233,10 @@ class AdventOfCode(commands.Cog):
     )
     @whitelist_override(channels=AOC_WHITELIST_RESTRICTED)
     async def aoc_leaderboard(
-            self,
-            ctx: commands.Context,
-            day_and_star: Optional[bool] = False,
-            maximum_scorers: Optional[int] = 10
+        self,
+        ctx: commands.Context,
+        day_and_star: Optional[bool] = False,
+        maximum_scorers: Optional[int] = 10,
     ) -> None:
         """
         Get the current top scorers of the Python Discord Leaderboard.
@@ -211,7 +258,9 @@ class AdventOfCode(commands.Cog):
 
             number_of_participants = leaderboard["number_of_participants"]
 
-            top_count = min(AocConfig.leaderboard_displayed_members, number_of_participants)
+            top_count = min(
+                AocConfig.leaderboard_displayed_members, number_of_participants
+            )
             header = f"Here's our current top {top_count}! {Emojis.christmas_tree * 3}"
 
             table = f"```\n{leaderboard['top_leaderboard']}\n```"
@@ -222,15 +271,14 @@ class AdventOfCode(commands.Cog):
 
         # This is a dictionary that contains solvers in respect of day, and star.
         # e.g. 1-1 means the solvers of the first star of the first day and their completion time
-        per_day_and_star = json.loads(leaderboard['leaderboard_per_day_and_star'])
+        per_day_and_star = json.loads(leaderboard["leaderboard_per_day_and_star"])
         view = AoCDropdownView(
             day_and_star_data=per_day_and_star,
             maximum_scorers=maximum_scorers,
-            original_author=ctx.author
+            original_author=ctx.author,
         )
         message = await ctx.send(
-            content="Please select a day and a star to filter by!",
-            view=view
+            content="Please select a day and a star to filter by!", view=view
         )
         await view.wait()
         await message.edit(view=None)
@@ -247,7 +295,7 @@ class AdventOfCode(commands.Cog):
         url = self.global_leaderboard_url
         global_leaderboard = discord.Embed(
             title="Advent of Code — Global Leaderboard",
-            description=f"You can find the global leaderboard [here]({url})."
+            description=f"You can find the global leaderboard [here]({url}).",
         )
         global_leaderboard.set_thumbnail(url=_helpers.AOC_EMBED_THUMBNAIL)
         await ctx.send(embed=global_leaderboard)
@@ -255,7 +303,7 @@ class AdventOfCode(commands.Cog):
     @adventofcode_group.command(
         name="stats",
         aliases=("dailystats", "ds"),
-        brief="Get daily statistics for the Python Discord leaderboard"
+        brief="Get daily statistics for the Python Discord leaderboard",
     )
     @whitelist_override(channels=AOC_WHITELIST_RESTRICTED)
     async def private_leaderboard_daily_stats(self, ctx: commands.Context) -> None:
@@ -299,7 +347,9 @@ class AdventOfCode(commands.Cog):
             try:
                 await _helpers.fetch_leaderboard(invalidate_cache=True)
             except _helpers.FetchingLeaderboardFailedError:
-                await ctx.send(":x: Something went wrong while trying to refresh the cache!")
+                await ctx.send(
+                    ":x: Something went wrong while trying to refresh the cache!"
+                )
             else:
                 await ctx.send("\N{OK Hand Sign} Refreshed leaderboard cache!")
 
@@ -317,7 +367,7 @@ class AdventOfCode(commands.Cog):
             title=self._base_url,
             colour=Colours.soft_green,
             url=self._base_url,
-            timestamp=datetime.utcnow()
+            timestamp=datetime.utcnow(),
         )
         about_embed.set_author(name="Advent of Code", url=self._base_url)
         for field in embed_fields:
@@ -329,5 +379,7 @@ class AdventOfCode(commands.Cog):
     async def cog_command_error(self, ctx: commands.Context, error: Exception) -> None:
         """Custom error handler if an advent of code command was posted in the wrong channel."""
         if isinstance(error, InChannelCheckFailure):
-            await ctx.send(f":x: Please use <#{Channels.advent_of_code_commands}> for aoc commands instead.")
+            await ctx.send(
+                f":x: Please use <#{Channels.advent_of_code_commands}> for aoc commands instead."
+            )
             error.handled = True

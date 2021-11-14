@@ -31,7 +31,7 @@ class RomanceMovieFinder(commands.Cog):
             "include_adult": "false",
             "include_video": "false",
             "page": random_page,
-            "with_genres": "10749"
+            "with_genres": "10749",
         }
         # The api request url
         request_url = "https://api.themoviedb.org/3/discover/movie"
@@ -46,10 +46,18 @@ class RomanceMovieFinder(commands.Cog):
                     title=f":sparkling_heart: {selected_movie['title']} :sparkling_heart:",
                     description=selected_movie["overview"],
                 )
-                embed.set_image(url=f"http://image.tmdb.org/t/p/w200/{selected_movie['poster_path']}")
-                embed.add_field(name="Release date :clock1:", value=selected_movie["release_date"])
-                embed.add_field(name="Rating :star2:", value=selected_movie["vote_average"])
-                embed.set_footer(text="This product uses the TMDb API but is not endorsed or certified by TMDb.")
+                embed.set_image(
+                    url=f"http://image.tmdb.org/t/p/w200/{selected_movie['poster_path']}"
+                )
+                embed.add_field(
+                    name="Release date :clock1:", value=selected_movie["release_date"]
+                )
+                embed.add_field(
+                    name="Rating :star2:", value=selected_movie["vote_average"]
+                )
+                embed.set_footer(
+                    text="This product uses the TMDb API but is not endorsed or certified by TMDb."
+                )
                 embed.set_thumbnail(url="https://i.imgur.com/LtFtC8H.png")
                 await ctx.send(embed=embed)
             except KeyError:

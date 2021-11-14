@@ -20,12 +20,19 @@ HTML_COLOURS = json.loads(Path("bot/resources/fun/html_colours.json").read_text(
 XKCD_COLOURS = json.loads(Path("bot/resources/fun/xkcd_colours.json").read_text("utf8"))
 
 COLOURS = [
-    (255, 0, 0, 255), (255, 128, 0, 255), (255, 255, 0, 255), (0, 255, 0, 255),
-    (0, 255, 255, 255), (0, 0, 255, 255), (255, 0, 255, 255), (128, 0, 128, 255)
+    (255, 0, 0, 255),
+    (255, 128, 0, 255),
+    (255, 255, 0, 255),
+    (0, 255, 0, 255),
+    (0, 255, 255, 255),
+    (0, 0, 255, 255),
+    (255, 0, 255, 255),
+    (128, 0, 128, 255),
 ]  # Colours to be replaced - Red, Orange, Yellow, Green, Light Blue, Dark Blue, Pink, Purple
 
 IRREPLACEABLE = [
-    (0, 0, 0, 0), (0, 0, 0, 255)
+    (0, 0, 0, 0),
+    (0, 0, 0, 255),
 ]  # Colours that are meant to stay the same - Transparent and Black
 
 
@@ -80,13 +87,17 @@ class EggDecorating(commands.Cog):
                 q, r = divmod(8, colours_n)
                 colours = colours * q + colours[:r]
             num = random.randint(1, 6)
-            im = Image.open(Path(f"bot/resources/holidays/easter/easter_eggs/design{num}.png"))
+            im = Image.open(
+                Path(f"bot/resources/holidays/easter/easter_eggs/design{num}.png")
+            )
             data = list(im.getdata())
 
             replaceable = {x for x in data if x not in IRREPLACEABLE}
             replaceable = sorted(replaceable, key=COLOURS.index)
 
-            replacing_colours = {colour: colours[i] for i, colour in enumerate(replaceable)}
+            replacing_colours = {
+                colour: colours[i] for i, colour in enumerate(replaceable)
+            }
             new_data = []
             for x in data:
                 if x in replacing_colours:
@@ -102,13 +113,18 @@ class EggDecorating(commands.Cog):
 
             bufferedio.seek(0)
 
-            file = discord.File(bufferedio, filename="egg.png")  # Creates file to be used in embed
+            file = discord.File(
+                bufferedio, filename="egg.png"
+            )  # Creates file to be used in embed
             embed = discord.Embed(
                 title="Your Colourful Easter Egg",
-                description="Here is your pretty little egg. Hope you like it!"
+                description="Here is your pretty little egg. Hope you like it!",
             )
             embed.set_image(url="attachment://egg.png")
-            embed.set_footer(text=f"Made by {ctx.author.display_name}", icon_url=ctx.author.display_avatar.url)
+            embed.set_footer(
+                text=f"Made by {ctx.author.display_name}",
+                icon_url=ctx.author.display_avatar.url,
+            )
 
         await ctx.send(file=file, embed=embed)
         return new_im

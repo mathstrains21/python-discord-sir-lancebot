@@ -10,7 +10,13 @@ from discord.ext import commands
 from sentry_sdk import push_scope
 
 from bot.bot import Bot
-from bot.constants import Channels, Colours, ERROR_REPLIES, NEGATIVE_REPLIES, RedirectOutput
+from bot.constants import (
+    Channels,
+    Colours,
+    ERROR_REPLIES,
+    NEGATIVE_REPLIES,
+    RedirectOutput,
+)
 from bot.utils.decorators import InChannelCheckFailure, InMonthCheckFailure
 from bot.utils.exceptions import APIError, UserNotPlayingError
 
@@ -32,7 +38,9 @@ class CommandErrorHandler(commands.Cog):
         if command._buckets.valid:
             bucket = command._buckets.get_bucket(message)
             bucket._tokens = min(bucket.rate, bucket._tokens + 1)
-            logging.debug("Cooldown counter reverted as the command was not used correctly.")
+            logging.debug(
+                "Cooldown counter reverted as the command was not used correctly."
+            )
 
     @staticmethod
     def error_embed(message: str, title: Union[Iterable, str] = ERROR_REPLIES) -> Embed:
@@ -46,10 +54,14 @@ class CommandErrorHandler(commands.Cog):
         return embed
 
     @commands.Cog.listener()
-    async def on_command_error(self, ctx: commands.Context, error: commands.CommandError) -> None:
+    async def on_command_error(
+        self, ctx: commands.Context, error: commands.CommandError
+    ) -> None:
         """Activates when a command raises an error."""
         if getattr(error, "handled", False):
-            logging.debug(f"Command {ctx.command} had its error already handled locally; ignoring.")
+            logging.debug(
+                f"Command {ctx.command} had its error already handled locally; ignoring."
+            )
             return
 
         parent_command = ""
@@ -70,7 +82,9 @@ class CommandErrorHandler(commands.Cog):
             return
 
         if isinstance(error, (InChannelCheckFailure, InMonthCheckFailure)):
-            await ctx.send(embed=self.error_embed(str(error), NEGATIVE_REPLIES), delete_after=7.5)
+            await ctx.send(
+                embed=self.error_embed(str(error), NEGATIVE_REPLIES), delete_after=7.5
+            )
             return
 
         if isinstance(error, commands.UserInputError):
@@ -86,20 +100,24 @@ class CommandErrorHandler(commands.Cog):
             mins, secs = divmod(math.ceil(error.retry_after), 60)
             embed = self.error_embed(
                 f"This command is on cooldown:\nPlease retry in {mins} minutes {secs} seconds.",
-                NEGATIVE_REPLIES
+                NEGATIVE_REPLIES,
             )
             await ctx.send(embed=embed, delete_after=7.5)
             return
 
         if isinstance(error, commands.DisabledCommand):
-            await ctx.send(embed=self.error_embed("This command has been disabled.", NEGATIVE_REPLIES))
+            await ctx.send(
+                embed=self.error_embed(
+                    "This command has been disabled.", NEGATIVE_REPLIES
+                )
+            )
             return
 
         if isinstance(error, commands.NoPrivateMessage):
             await ctx.send(
                 embed=self.error_embed(
                     f"This command can only be used in the server. Go to <#{Channels.community_bot_commands}> instead!",
-                    NEGATIVE_REPLIES
+                    NEGATIVE_REPLIES,
                 )
             )
             return
@@ -114,7 +132,11 @@ class CommandErrorHandler(commands.Cog):
             return
 
         if isinstance(error, commands.CheckFailure):
-            await ctx.send(embed=self.error_embed("You are not authorized to use this command.", NEGATIVE_REPLIES))
+            await ctx.send(
+                embed=self.error_embed(
+                    "You are not authorized to use this command.", NEGATIVE_REPLIES
+                )
+            )
             return
 
         if isinstance(error, UserNotPlayingError):
@@ -125,16 +147,13 @@ class CommandErrorHandler(commands.Cog):
             await ctx.send(
                 embed=self.error_embed(
                     f"There was an error when communicating with the {error.api}",
-                    NEGATIVE_REPLIES
+                    NEGATIVE_REPLIES,
                 )
             )
             return
 
         with push_scope() as scope:
-            scope.user = {
-                "id": ctx.author.id,
-                "username": str(ctx.author)
-            }
+            scope.user = {"id": ctx.author.id, "username": str(ctx.author)}
 
             scope.set_tag("command", ctx.command.qualified_name)
             scope.set_tag("message_id", ctx.message.id)
@@ -147,13 +166,17 @@ class CommandErrorHandler(commands.Cog):
 
             log.exception(f"Unhandled command error: {str(error)}", exc_info=error)
 
-    async def send_command_suggestion(self, ctx: commands.Context, command_name: str) -> None:
+    async def send_command_suggestion(
+        self, ctx: commands.Context, command_name: str
+    ) -> None:
         """Sends user similar commands if any can be found."""
         raw_commands = []
         for cmd in self.bot.walk_commands():
             if not cmd.hidden:
                 raw_commands += (cmd.name, *cmd.aliases)
-        if similar_command_data := difflib.get_close_matches(command_name, raw_commands, 1):
+        if similar_command_data := difflib.get_close_matches(
+            command_name, raw_commands, 1
+        ):
             similar_command_name = similar_command_data[0]
             similar_command = self.bot.get_command(similar_command_name)
 
@@ -173,7 +196,9 @@ class CommandErrorHandler(commands.Cog):
             misspelled_content = ctx.message.content
             e = Embed()
             e.set_author(name="Did you mean:", icon_url=QUESTION_MARK_ICON)
-            e.description = misspelled_content.replace(command_name, similar_command_name, 1)
+            e.description = misspelled_content.replace(
+                command_name, similar_command_name, 1
+            )
             await ctx.send(embed=e, delete_after=RedirectOutput.delete_delay)
 
 

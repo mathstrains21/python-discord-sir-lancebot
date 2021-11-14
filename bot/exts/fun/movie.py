@@ -18,10 +18,7 @@ BASE_URL = "https://api.themoviedb.org/3/"
 logger = logging.getLogger(__name__)
 
 # Define movie params, that will be used for every movie request
-MOVIE_PARAMS = {
-    "api_key": Tokens.tmdb,
-    "language": "en-US"
-}
+MOVIE_PARAMS = {"api_key": Tokens.tmdb, "language": "en-US"}
 
 
 class MovieGenres(Enum):
@@ -71,7 +68,9 @@ class Movie(Cog):
         # Capitalize genre for getting data from Enum, get random page, send help when genre don't exist.
         genre = genre.capitalize()
         try:
-            result = await self.get_movies_data(self.http_session, MovieGenres[genre].value, 1)
+            result = await self.get_movies_data(
+                self.http_session, MovieGenres[genre].value, 1
+            )
         except KeyError:
             await invoke_help_command(ctx)
             return
@@ -89,10 +88,14 @@ class Movie(Cog):
         page = random.randint(1, result["total_pages"])
 
         # Get movies list from TMDB, check if results key in result. When not, raise error.
-        movies = await self.get_movies_data(self.http_session, MovieGenres[genre].value, page)
+        movies = await self.get_movies_data(
+            self.http_session, MovieGenres[genre].value, page
+        )
         if "results" not in movies:
-            err_msg = f"There is problem while making TMDB API request. Response Code: {result['status_code']}, " \
-                      f"{result['status_message']}."
+            err_msg = (
+                f"There is problem while making TMDB API request. Response Code: {result['status_code']}, "
+                f"{result['status_message']}."
+            )
             await ctx.send(err_msg)
             logger.warning(err_msg)
 
@@ -105,9 +108,13 @@ class Movie(Cog):
     @movies.command(name="genres", aliases=("genre", "g"))
     async def genres(self, ctx: Context) -> None:
         """Show all currently available genres for .movies command."""
-        await ctx.send(f"Current available genres: {', '.join('`' + genre.name + '`' for genre in MovieGenres)}")
+        await ctx.send(
+            f"Current available genres: {', '.join('`' + genre.name + '`' for genre in MovieGenres)}"
+        )
 
-    async def get_movies_data(self, client: ClientSession, genre_id: str, page: int) -> list[dict[str, Any]]:
+    async def get_movies_data(
+        self, client: ClientSession, genre_id: str, page: int
+    ) -> list[dict[str, Any]]:
         """Return JSON of TMDB discover request."""
         # Define params of request
         params = {
@@ -117,7 +124,7 @@ class Movie(Cog):
             "include_adult": "false",
             "include_video": "false",
             "page": page,
-            "with_genres": genre_id
+            "with_genres": genre_id,
         }
 
         url = BASE_URL + "discover/movie"
@@ -126,7 +133,9 @@ class Movie(Cog):
         async with client.get(url, params=params) as resp:
             return await resp.json()
 
-    async def get_pages(self, client: ClientSession, movies: dict[str, Any], amount: int) -> list[tuple[str, str]]:
+    async def get_pages(
+        self, client: ClientSession, movies: dict[str, Any], amount: int
+    ) -> list[tuple[str, str]]:
         """Fetch all movie pages from movies dictionary. Return list of pages."""
         pages = []
 
@@ -142,7 +151,9 @@ class Movie(Cog):
     async def get_movie(self, client: ClientSession, movie: int) -> dict[str, Any]:
         """Get Movie by movie ID from TMDB. Return result dictionary."""
         if not isinstance(movie, int):
-            raise ValueError("Error while fetching movie from TMDB, movie argument must be integer. ")
+            raise ValueError(
+                "Error while fetching movie from TMDB, movie argument must be integer. "
+            )
         url = BASE_URL + f"movie/{movie}"
 
         async with client.get(url, params=MOVIE_PARAMS) as resp:
@@ -169,12 +180,14 @@ class Movie(Cog):
         countries = movie["production_countries"]
 
         text += f"**Made by:** {', '.join(company['name'] for company in companies)}\n"
-        text += f"**Made in:** {', '.join(country['name'] for country in countries)}\n\n"
+        text += (
+            f"**Made in:** {', '.join(country['name'] for country in countries)}\n\n"
+        )
 
         text += "__**Some Numbers**__\n"
 
-        budget = f"{movie['budget']:,d}" if movie['budget'] else "?"
-        revenue = f"{movie['revenue']:,d}" if movie['revenue'] else "?"
+        budget = f"{movie['budget']:,d}" if movie["budget"] else "?"
+        revenue = f"{movie['revenue']:,d}" if movie["revenue"] else "?"
 
         if movie["runtime"] is not None:
             duration = divmod(movie["runtime"], 60)
@@ -195,7 +208,9 @@ class Movie(Cog):
     async def get_embed(self, name: str) -> Embed:
         """Return embed of random movies. Uses name in title."""
         embed = Embed(title=f"Random {name} Movies")
-        embed.set_footer(text="This product uses the TMDb API but is not endorsed or certified by TMDb.")
+        embed.set_footer(
+            text="This product uses the TMDb API but is not endorsed or certified by TMDb."
+        )
         embed.set_thumbnail(url="https://i.imgur.com/LtFtC8H.png")
         return embed
 

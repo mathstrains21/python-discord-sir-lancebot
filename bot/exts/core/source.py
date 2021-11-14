@@ -14,7 +14,9 @@ class BotSource(commands.Cog):
     """Displays information about the bot's source code."""
 
     @commands.command(name="source", aliases=("src",))
-    async def source_command(self, ctx: commands.Context, *, source_item: SourceConverter = None) -> None:
+    async def source_command(
+        self, ctx: commands.Context, *, source_item: SourceConverter = None
+    ) -> None:
         """Display information and a GitHub link to the source code of a command, tag, or cog."""
         if not source_item:
             embed = Embed(title="Sir Lancebot's GitHub Repository")
@@ -26,7 +28,9 @@ class BotSource(commands.Cog):
         embed = await self.build_embed(source_item)
         await ctx.send(embed=embed)
 
-    def get_source_link(self, source_item: SourceType) -> tuple[str, str, Optional[int]]:
+    def get_source_link(
+        self, source_item: SourceType
+    ) -> tuple[str, str, Optional[int]]:
         """
         Build GitHub link of source item, return this link, file location and first line number.
 
@@ -41,13 +45,17 @@ class BotSource(commands.Cog):
             try:
                 filename = inspect.getsourcefile(src)
             except TypeError:
-                raise commands.BadArgument("Cannot get source for a dynamically-created object.")
+                raise commands.BadArgument(
+                    "Cannot get source for a dynamically-created object."
+                )
 
         if not isinstance(source_item, str):
             try:
                 lines, first_line_no = inspect.getsourcelines(src)
             except OSError:
-                raise commands.BadArgument("Cannot get source for a dynamically-created object.")
+                raise commands.BadArgument(
+                    "Cannot get source for a dynamically-created object."
+                )
 
             lines_extension = f"#L{first_line_no}-L{first_line_no+len(lines)-1}"
         else:

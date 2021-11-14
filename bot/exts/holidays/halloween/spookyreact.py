@@ -17,7 +17,7 @@ SPOOKY_TRIGGERS = {
     "pumpkin": (r"\bpumpkin\b", "\U0001F383"),
     "halloween": (r"\bhalloween\b", "\U0001F383"),
     "jack-o-lantern": (r"\bjack-o-lantern\b", "\U0001F383"),
-    "danger": (r"\bdanger\b", "\U00002620")
+    "danger": (r"\bdanger\b", "\U00002620"),
 }
 
 
@@ -59,7 +59,9 @@ class SpookyReact(Cog):
         # Because on_message doesn't give a full Context object, generate one first
         ctx = await self.bot.get_context(message)
         if ctx.prefix:
-            log.debug(f"Ignoring reactions on command invocation. Message ID: {message.id}")
+            log.debug(
+                f"Ignoring reactions on command invocation. Message ID: {message.id}"
+            )
             return True
 
         return False

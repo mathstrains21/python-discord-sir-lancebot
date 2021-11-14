@@ -16,7 +16,7 @@ URL = "https://api.github.com/search/issues?per_page=100&q=is:issue+label:hackto
 
 REQUEST_HEADERS = {
     "User-Agent": "Python Discord Hacktoberbot",
-    "Accept": "application / vnd.github.v3 + json"
+    "Accept": "application / vnd.github.v3 + json",
 }
 if GITHUB_TOKEN := Tokens.github:
     REQUEST_HEADERS["Authorization"] = f"token {GITHUB_TOKEN}"
@@ -52,28 +52,38 @@ class HacktoberIssues(commands.Cog):
     async def get_issues(self, ctx: commands.Context, option: str) -> Optional[dict]:
         """Get a list of the python issues with the label 'hacktoberfest' from the Github api."""
         if option == "beginner":
-            if (ctx.message.created_at.replace(tzinfo=None) - self.cache_timer_beginner).seconds <= 60:
+            if (
+                ctx.message.created_at.replace(tzinfo=None) - self.cache_timer_beginner
+            ).seconds <= 60:
                 log.debug("using cache")
                 return self.cache_beginner
-        elif (ctx.message.created_at.replace(tzinfo=None) - self.cache_timer_normal).seconds <= 60:
+        elif (
+            ctx.message.created_at.replace(tzinfo=None) - self.cache_timer_normal
+        ).seconds <= 60:
             log.debug("using cache")
             return self.cache_normal
 
         if option == "beginner":
             url = URL + '+label:"good first issue"'
             if self.cache_beginner is not None:
-                page = random.randint(1, min(1000, self.cache_beginner["total_count"]) // 100)
+                page = random.randint(
+                    1, min(1000, self.cache_beginner["total_count"]) // 100
+                )
                 url += f"&page={page}"
         else:
             url = URL
             if self.cache_normal is not None:
-                page = random.randint(1, min(1000, self.cache_normal["total_count"]) // 100)
+                page = random.randint(
+                    1, min(1000, self.cache_normal["total_count"]) // 100
+                )
                 url += f"&page={page}"
 
         log.debug(f"making api request to url: {url}")
         async with self.bot.http_session.get(url, headers=REQUEST_HEADERS) as response:
             if response.status != 200:
-                log.error(f"expected 200 status (got {response.status}) by the GitHub api.")
+                log.error(
+                    f"expected 200 status (got {response.status}) by the GitHub api."
+                )
                 await ctx.send(
                     f"ERROR: expected 200 status (got {response.status}) by the GitHub api.\n"
                     f"{await response.text()}"
@@ -83,7 +93,9 @@ class HacktoberIssues(commands.Cog):
 
             if len(data["items"]) == 0:
                 log.error(f"no issues returned by GitHub API, with url: {response.url}")
-                await ctx.send(f"ERROR: no issues returned by GitHub API, with url: {response.url}")
+                await ctx.send(
+                    f"ERROR: no issues returned by GitHub API, with url: {response.url}"
+                )
                 return None
 
             if option == "beginner":

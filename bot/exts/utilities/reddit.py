@@ -13,7 +13,13 @@ from discord.ext.tasks import loop
 from discord.utils import escape_markdown, sleep_until
 
 from bot.bot import Bot
-from bot.constants import Channels, ERROR_REPLIES, Emojis, Reddit as RedditConfig, STAFF_ROLES
+from bot.constants import (
+    Channels,
+    ERROR_REPLIES,
+    Emojis,
+    Reddit as RedditConfig,
+    STAFF_ROLES,
+)
 from bot.utils.converters import Subreddit
 from bot.utils.extensions import invoke_help_command
 from bot.utils.messages import sub_clyde
@@ -59,7 +65,9 @@ class Reddit(Cog):
         """Get the #reddit channel object from the bot's cache."""
         return self.bot.get_channel(Channels.reddit)
 
-    def build_pagination_pages(self, posts: list[dict], paginate: bool) -> Union[list[tuple], str]:
+    def build_pagination_pages(
+        self, posts: list[dict], paginate: bool
+    ) -> Union[list[tuple], str]:
         """Build embed pages required for Paginator."""
         pages = []
         first_page = ""
@@ -80,14 +88,18 @@ class Reddit(Cog):
             text = data["selftext"]
             if text:
                 text = escape_markdown(text).replace("[", "⦋").replace("]", "⦌")
-                first_page += textwrap.shorten(text, width=100, placeholder="...") + "\n"
+                first_page += (
+                    textwrap.shorten(text, width=100, placeholder="...") + "\n"
+                )
 
             ups = data["ups"]
             comments = data["num_comments"]
             author = data["author"]
 
             content_type = Emojis.reddit_post_text
-            if data["is_video"] or {"youtube", "youtu.be"}.issubset(set(data["url"].split("."))):
+            if data["is_video"] or {"youtube", "youtu.be"}.issubset(
+                set(data["url"].split("."))
+            ):
                 # This means the content type in the post is a video.
                 content_type = f"{Emojis.reddit_post_video}"
 
@@ -104,7 +116,9 @@ class Reddit(Cog):
             if paginate:
                 post_page += f"**[{title}]({link})**\n\n"
                 if text:
-                    post_page += textwrap.shorten(text, width=252, placeholder="...") + "\n\n"
+                    post_page += (
+                        textwrap.shorten(text, width=252, placeholder="...") + "\n\n"
+                    )
                 post_page += (
                     f"{content_type}\u2003{Emojis.reddit_upvote}{ups}\u2003{Emojis.reddit_comments}\u2002"
                     f"{comments}\u2003{Emojis.reddit_users}{author}"
@@ -116,7 +130,9 @@ class Reddit(Cog):
             # Return the first summery page if pagination is not required
             return first_page
 
-        pages.insert(0, (first_page, ""))  # Using image paginator, hence settings image url to empty string
+        pages.insert(
+            0, (first_page, "")
+        )  # Using image paginator, hence settings image url to empty string
         return pages
 
     async def get_access_token(self) -> None:
@@ -131,21 +147,22 @@ class Reddit(Cog):
                 url=f"{self.URL}/api/v1/access_token",
                 headers=self.HEADERS,
                 auth=self.client_auth,
-                data={
-                    "grant_type": "client_credentials",
-                    "duration": "temporary"
-                }
+                data={"grant_type": "client_credentials", "duration": "temporary"},
             )
 
             if response.status == 200 and response.content_type == "application/json":
                 content = await response.json()
-                expiration = int(content["expires_in"]) - 60  # Subtract 1 minute for leeway.
+                expiration = (
+                    int(content["expires_in"]) - 60
+                )  # Subtract 1 minute for leeway.
                 self.access_token = AccessToken(
                     token=content["access_token"],
-                    expires_at=datetime.utcnow() + timedelta(seconds=expiration)
+                    expires_at=datetime.utcnow() + timedelta(seconds=expiration),
                 )
 
-                log.debug(f"New token acquired; expires on UTC {self.access_token.expires_at}")
+                log.debug(
+                    f"New token acquired; expires on UTC {self.access_token.expires_at}"
+                )
                 return
             else:
                 log.debug(
@@ -157,7 +174,9 @@ class Reddit(Cog):
             await asyncio.sleep(3)
 
         self.bot.remove_cog(self.qualified_name)
-        raise ClientError("Authentication with the Reddit API failed. Unloading the cog.")
+        raise ClientError(
+            "Authentication with the Reddit API failed. Unloading the cog."
+        )
 
     async def revoke_access_token(self) -> None:
         """
@@ -169,18 +188,20 @@ class Reddit(Cog):
             url=f"{self.URL}/api/v1/revoke_token",
             headers=self.HEADERS,
             auth=self.client_auth,
-            data={
-                "token": self.access_token.token,
-                "token_type_hint": "access_token"
-            }
+            data={"token": self.access_token.token, "token_type_hint": "access_token"},
         )
 
-        if response.status in [200, 204] and response.content_type == "application/json":
+        if (
+            response.status in [200, 204]
+            and response.content_type == "application/json"
+        ):
             self.access_token = None
         else:
             log.warning(f"Unable to revoke access token: status {response.status}.")
 
-    async def fetch_posts(self, route: str, *, amount: int = 25, params: dict = None) -> list[dict]:
+    async def fetch_posts(
+        self, route: str, *, amount: int = 25, params: dict = None
+    ) -> list[dict]:
         """A helper method to fetch a certain amount of Reddit posts at a given route."""
         # Reddit's JSON responses only provide 25 posts at most.
         if not 25 >= amount > 0:
@@ -194,10 +215,13 @@ class Reddit(Cog):
         for _ in range(self.MAX_RETRIES):
             response = await self.bot.http_session.get(
                 url=url,
-                headers={**self.HEADERS, "Authorization": f"bearer {self.access_token.token}"},
-                params=params
+                headers={
+                    **self.HEADERS,
+                    "Authorization": f"bearer {self.access_token.token}",
+                },
+                params=params,
             )
-            if response.status == 200 and response.content_type == 'application/json':
+            if response.status == 200 and response.content_type == "application/json":
                 # Got appropriate response - process and return.
                 content = await response.json()
                 posts = content["data"]["children"]
@@ -208,11 +232,19 @@ class Reddit(Cog):
 
             await asyncio.sleep(3)
 
-        log.debug(f"Invalid response from: {url} - status code {response.status}, mimetype {response.content_type}")
-        return list()  # Failed to get appropriate response within allowed number of retries.
+        log.debug(
+            f"Invalid response from: {url} - status code {response.status}, mimetype {response.content_type}"
+        )
+        return (
+            list()
+        )  # Failed to get appropriate response within allowed number of retries.
 
     async def get_top_posts(
-            self, subreddit: Subreddit, time: str = "all", amount: int = 5, paginate: bool = False
+        self,
+        subreddit: Subreddit,
+        time: str = "all",
+        amount: int = 5,
+        paginate: bool = False,
     ) -> Union[Embed, list[tuple]]:
         """
         Get the top amount of posts for a given subreddit within a specified timeframe.
@@ -225,9 +257,7 @@ class Reddit(Cog):
         embed = Embed()
 
         posts = await self.fetch_posts(
-            route=f"{subreddit}/top",
-            amount=amount,
-            params={"t": time}
+            route=f"{subreddit}/top", amount=amount, params={"t": time}
         )
         if not posts:
             embed.title = random.choice(ERROR_REPLIES)
@@ -269,7 +299,9 @@ class Reddit(Cog):
         for subreddit in RedditConfig.subreddits:
             top_posts = await self.get_top_posts(subreddit=subreddit, time="day")
             username = sub_clyde(f"{subreddit} Top Daily Posts")
-            message = await self.webhook.send(username=username, embed=top_posts, wait=True)
+            message = await self.webhook.send(
+                username=username, embed=top_posts, wait=True
+            )
 
             if message.channel.is_news():
                 await message.publish()
@@ -280,11 +312,15 @@ class Reddit(Cog):
             # Send and pin the new weekly posts.
             top_posts = await self.get_top_posts(subreddit=subreddit, time="week")
             username = sub_clyde(f"{subreddit} Top Weekly Posts")
-            message = await self.webhook.send(wait=True, username=username, embed=top_posts)
+            message = await self.webhook.send(
+                wait=True, username=username, embed=top_posts
+            )
 
             if subreddit.lower() == "r/python":
                 if not self.channel:
-                    log.warning("Failed to get #reddit channel to remove pins in the weekly loop.")
+                    log.warning(
+                        "Failed to get #reddit channel to remove pins in the weekly loop."
+                    )
                     return
 
                 # Remove the oldest pins so that only 12 remain at most.
@@ -305,41 +341,47 @@ class Reddit(Cog):
         await invoke_help_command(ctx)
 
     @reddit_group.command(name="top")
-    async def top_command(self, ctx: Context, subreddit: Subreddit = "r/Python") -> None:
+    async def top_command(
+        self, ctx: Context, subreddit: Subreddit = "r/Python"
+    ) -> None:
         """Send the top posts of all time from a given subreddit."""
         async with ctx.typing():
-            pages = await self.get_top_posts(subreddit=subreddit, time="all", paginate=True)
+            pages = await self.get_top_posts(
+                subreddit=subreddit, time="all", paginate=True
+            )
 
         await ctx.send(f"Here are the top {subreddit} posts of all time!")
-        embed = Embed(
-            color=Colour.og_blurple()
-        )
+        embed = Embed(color=Colour.og_blurple())
 
         await ImagePaginator.paginate(pages, ctx, embed)
 
     @reddit_group.command(name="daily")
-    async def daily_command(self, ctx: Context, subreddit: Subreddit = "r/Python") -> None:
+    async def daily_command(
+        self, ctx: Context, subreddit: Subreddit = "r/Python"
+    ) -> None:
         """Send the top posts of today from a given subreddit."""
         async with ctx.typing():
-            pages = await self.get_top_posts(subreddit=subreddit, time="day", paginate=True)
+            pages = await self.get_top_posts(
+                subreddit=subreddit, time="day", paginate=True
+            )
 
         await ctx.send(f"Here are today's top {subreddit} posts!")
-        embed = Embed(
-            color=Colour.og_blurple()
-        )
+        embed = Embed(color=Colour.og_blurple())
 
         await ImagePaginator.paginate(pages, ctx, embed)
 
     @reddit_group.command(name="weekly")
-    async def weekly_command(self, ctx: Context, subreddit: Subreddit = "r/Python") -> None:
+    async def weekly_command(
+        self, ctx: Context, subreddit: Subreddit = "r/Python"
+    ) -> None:
         """Send the top posts of this week from a given subreddit."""
         async with ctx.typing():
-            pages = await self.get_top_posts(subreddit=subreddit, time="week", paginate=True)
+            pages = await self.get_top_posts(
+                subreddit=subreddit, time="week", paginate=True
+            )
 
         await ctx.send(f"Here are this week's top {subreddit} posts!")
-        embed = Embed(
-            color=Colour.og_blurple()
-        )
+        embed = Embed(color=Colour.og_blurple())
 
         await ImagePaginator.paginate(pages, ctx, embed)
 
@@ -353,10 +395,11 @@ class Reddit(Cog):
 
         await LinePaginator.paginate(
             RedditConfig.subreddits,
-            ctx, embed,
+            ctx,
+            embed,
             footer_text="Use the reddit commands along with these to view their posts.",
             empty=False,
-            max_lines=15
+            max_lines=15,
         )
 
 

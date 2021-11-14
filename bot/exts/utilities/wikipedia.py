@@ -12,9 +12,7 @@ from bot.utils.exceptions import APIError
 
 log = logging.getLogger(__name__)
 
-SEARCH_API = (
-    "https://en.wikipedia.org/w/api.php"
-)
+SEARCH_API = "https://en.wikipedia.org/w/api.php"
 WIKI_PARAMS = {
     "action": "query",
     "list": "search",
@@ -23,17 +21,13 @@ WIKI_PARAMS = {
     "utf8": "",
     "format": "json",
     "origin": "*",
-
 }
 WIKI_THUMBNAIL = (
     "https://upload.wikimedia.org/wikipedia/en/thumb/8/80/Wikipedia-logo-v2.svg"
     "/330px-Wikipedia-logo-v2.svg.png"
 )
 WIKI_SNIPPET_REGEX = r"(<!--.*?-->|<[^>]*>)"
-WIKI_SEARCH_RESULT = (
-    "**[{name}]({url})**\n"
-    "{description}\n"
-)
+WIKI_SEARCH_RESULT = "**[{name}]({url})**\n" "{description}\n"
 
 
 class WikipediaSearch(commands.Cog):
@@ -47,14 +41,18 @@ class WikipediaSearch(commands.Cog):
         params = WIKI_PARAMS | {"srlimit": 10, "srsearch": search}
         async with self.bot.http_session.get(url=SEARCH_API, params=params) as resp:
             if resp.status != 200:
-                log.info(f"Unexpected response `{resp.status}` while searching wikipedia for `{search}`")
+                log.info(
+                    f"Unexpected response `{resp.status}` while searching wikipedia for `{search}`"
+                )
                 raise APIError("Wikipedia API", resp.status)
 
             raw_data = await resp.json()
 
             if not raw_data.get("query"):
                 if error := raw_data.get("errors"):
-                    log.error(f"There was an error while communicating with the Wikipedia API: {error}")
+                    log.error(
+                        f"There was an error while communicating with the Wikipedia API: {error}"
+                    )
                 raise APIError("Wikipedia API", resp.status, error)
 
             lines = []
@@ -63,11 +61,9 @@ class WikipediaSearch(commands.Cog):
                     line = WIKI_SEARCH_RESULT.format(
                         name=article["title"],
                         description=unescape(
-                            re.sub(
-                                WIKI_SNIPPET_REGEX, "", article["snippet"]
-                            )
+                            re.sub(WIKI_SNIPPET_REGEX, "", article["snippet"])
                         ),
-                        url=f"https://en.wikipedia.org/?curid={article['pageid']}"
+                        url=f"https://en.wikipedia.org/?curid={article['pageid']}",
                     )
                     lines.append(line)
 
@@ -75,20 +71,17 @@ class WikipediaSearch(commands.Cog):
 
     @commands.cooldown(1, 10, commands.BucketType.user)
     @commands.command(name="wikipedia", aliases=("wiki",))
-    async def wikipedia_search_command(self, ctx: commands.Context, *, search: str) -> None:
+    async def wikipedia_search_command(
+        self, ctx: commands.Context, *, search: str
+    ) -> None:
         """Sends paginated top 10 results of Wikipedia search.."""
         contents = await self.wiki_request(ctx.channel, search)
 
         if contents:
-            embed = Embed(
-                title="Wikipedia Search Results",
-                colour=Color.og_blurple()
-            )
+            embed = Embed(title="Wikipedia Search Results", colour=Color.og_blurple())
             embed.set_thumbnail(url=WIKI_THUMBNAIL)
             embed.timestamp = datetime.utcnow()
-            await LinePaginator.paginate(
-                contents, ctx, embed
-            )
+            await LinePaginator.paginate(contents, ctx, embed)
         else:
             await ctx.send(
                 "Sorry, we could not find a wikipedia article using that search term."

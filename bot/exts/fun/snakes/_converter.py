@@ -52,10 +52,16 @@ class Snake(Converter):
         timeout = len(all_names) * (3 / 4)
 
         embed = discord.Embed(
-            title="Found multiple choices. Please choose the correct one.", colour=0x59982F)
-        embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.display_avatar.url)
+            title="Found multiple choices. Please choose the correct one.",
+            colour=0x59982F,
+        )
+        embed.set_author(
+            name=ctx.author.display_name, icon_url=ctx.author.display_avatar.url
+        )
 
-        name = await disambiguate(ctx, get_potential(all_names), timeout=timeout, embed=embed)
+        name = await disambiguate(
+            ctx, get_potential(all_names), timeout=timeout, embed=embed
+        )
         return names.get(name, name)
 
     @classmethod
@@ -63,11 +69,17 @@ class Snake(Converter):
         """Build list of snakes from the static snake resources."""
         # Get all the snakes
         if cls.snakes is None:
-            cls.snakes = json.loads((SNAKE_RESOURCES / "snake_names.json").read_text("utf8"))
+            cls.snakes = json.loads(
+                (SNAKE_RESOURCES / "snake_names.json").read_text("utf8")
+            )
         # Get the special cases
         if cls.special_cases is None:
-            special_cases = json.loads((SNAKE_RESOURCES / "special_snakes.json").read_text("utf8"))
-            cls.special_cases = {snake["name"].lower(): snake for snake in special_cases}
+            special_cases = json.loads(
+                (SNAKE_RESOURCES / "special_snakes.json").read_text("utf8")
+            )
+            cls.special_cases = {
+                snake["name"].lower(): snake for snake in special_cases
+            }
 
     @classmethod
     async def random(cls) -> str:

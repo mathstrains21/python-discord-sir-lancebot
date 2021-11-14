@@ -12,7 +12,9 @@ from bot.bot import Bot
 
 log = logging.getLogger(__name__)
 
-HALLOWEENIFY_DATA = loads(Path("bot/resources/holidays/halloween/halloweenify.json").read_text("utf8"))
+HALLOWEENIFY_DATA = loads(
+    Path("bot/resources/holidays/halloween/halloweenify.json").read_text("utf8")
+)
 
 
 class Halloweenify(commands.Cog):
@@ -44,13 +46,13 @@ class Halloweenify(commands.Cog):
                     await ctx.author.edit(nick=nickname)
                     embed.description += f"Your new nickname will be: \n:ghost: **{nickname}** :jack_o_lantern:"
 
-                except Forbidden:   # The bot doesn't have enough permission
+                except Forbidden:  # The bot doesn't have enough permission
                     embed.description += (
                         f"Your new nickname should be: \n :ghost: **{nickname}** :jack_o_lantern: \n\n"
                         f"It looks like I cannot change your name, but feel free to change it yourself."
                     )
 
-            else:   # The command has been invoked in DM
+            else:  # The command has been invoked in DM
                 embed.description += (
                     f"Your new nickname should be: \n :ghost: **{nickname}** :jack_o_lantern: \n\n"
                     f"Feel free to change it yourself, or invoke the command again inside the server."

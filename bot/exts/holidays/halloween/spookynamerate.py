@@ -66,7 +66,9 @@ HELP_MESSAGE_DICT = {
 }
 
 # The names are from https://www.mockaroo.com/
-NAMES = json.loads(Path("bot/resources/holidays/halloween/spookynamerate_names.json").read_text("utf8"))
+NAMES = json.loads(
+    Path("bot/resources/holidays/halloween/spookynamerate_names.json").read_text("utf8")
+)
 FIRST_NAMES = NAMES["first_names"]
 LAST_NAMES = NAMES["last_names"]
 
@@ -86,7 +88,9 @@ class SpookyNameRate(Cog):
     # The data cache stores small information such as the current name that is going on and whether it is the first time
     # the bot is running
     data = RedisCache()
-    debug = getenv("SPOOKYNAMERATE_DEBUG", False)  # Enable if you do not want to limit the commands to October or if
+    debug = getenv(
+        "SPOOKYNAMERATE_DEBUG", False
+    )  # Enable if you do not want to limit the commands to October or if
     # you do not want to wait till 12 UTC. Note: if debug is enabled and you run `.cogs reload spookynamerate`, it
     # will automatically start the scoring and announcing the result (without waiting for 12, so do not expect it to.).
     # Also, it won't wait for the two hours (when the poll closes).
@@ -135,11 +139,17 @@ class SpookyNameRate(Cog):
     async def add_name(self, ctx: Context, *, name: str) -> None:
         """Use this command to add/register your spookified name."""
         if self.poll:
-            logger.info(f"{ctx.author} tried to add a name, but the poll had already started.")
-            await ctx.send("Sorry, the poll has started! You can try and participate in the next round though!")
+            logger.info(
+                f"{ctx.author} tried to add a name, but the poll had already started."
+            )
+            await ctx.send(
+                "Sorry, the poll has started! You can try and participate in the next round though!"
+            )
             return
 
-        for data in (json.loads(user_data) for _, user_data in await self.messages.items()):
+        for data in (
+            json.loads(user_data) for _, user_data in await self.messages.items()
+        ):
             if data["author"] == ctx.author.id:
                 await ctx.send(
                     "But you have already added an entry! Type "
@@ -152,7 +162,9 @@ class SpookyNameRate(Cog):
                 await ctx.send("TOO LATE. Someone has already added this name.")
                 return
 
-        msg = await (await self.get_channel()).send(f"{ctx.author.mention} added the name {name!r}!")
+        msg = await (await self.get_channel()).send(
+            f"{ctx.author.mention} added the name {name!r}!"
+        )
 
         await self.messages.set(
             msg.id,
@@ -174,7 +186,9 @@ class SpookyNameRate(Cog):
     async def delete_name(self, ctx: Context) -> None:
         """Delete the user's name."""
         if self.poll:
-            await ctx.send("You can't delete your name since the poll has already started!")
+            await ctx.send(
+                "You can't delete your name since the poll has already started!"
+            )
             return
         for message_id, data in await self.messages.items():
             data = json.loads(data)
@@ -245,17 +259,26 @@ class SpookyNameRate(Cog):
                 msg = await channel.fetch_message(message_id)
                 score = 0
                 for reaction in msg.reactions:
-                    reaction_value = EMOJIS_VAL.get(reaction.emoji, 0)  # get the value of the emoji else 0
-                    score += reaction_value * (reaction.count - 1)  # multiply by the num of reactions
+                    reaction_value = EMOJIS_VAL.get(
+                        reaction.emoji, 0
+                    )  # get the value of the emoji else 0
+                    score += reaction_value * (
+                        reaction.count - 1
+                    )  # multiply by the num of reactions
                     # subtract one, since one reaction was done by the bot
 
-                logger.debug(f"{self.bot.get_user(data['author'])} got a score of {score}")
+                logger.debug(
+                    f"{self.bot.get_user(data['author'])} got a score of {score}"
+                )
                 data["score"] = score
                 await self.messages.set(message_id, json.dumps(data))
 
             # Sort the winner messages
             winner_messages = sorted(
-                ((msg_id, json.loads(usr_data)) for msg_id, usr_data in await self.messages.items()),
+                (
+                    (msg_id, json.loads(usr_data))
+                    for msg_id, usr_data in await self.messages.items()
+                ),
                 key=lambda x: x[1]["score"],
                 reverse=True,
             )
@@ -266,12 +289,16 @@ class SpookyNameRate(Cog):
                 if len(winner_messages) > i + 1:
                     if winner_messages[i + 1][1]["score"] != winner[1]["score"]:
                         break
-                elif len(winner_messages) == (i + 1) + 1:  # The next element is the last element
+                elif (
+                    len(winner_messages) == (i + 1) + 1
+                ):  # The next element is the last element
                     if winner_messages[i + 1][1]["score"] != winner[1]["score"]:
                         break
 
             # one iteration is complete
-            await channel.send("Today's Spooky Name Rate Game ends now, and the winner(s) is(are)...")
+            await channel.send(
+                "Today's Spooky Name Rate Game ends now, and the winner(s) is(are)..."
+            )
 
             async with channel.typing():
                 await asyncio.sleep(1)  # give the drum roll feel
@@ -281,8 +308,15 @@ class SpookyNameRate(Cog):
                     return
 
                 score = winners[0][1]["score"]
-                congratulations = "to all" if len(winners) > 1 else PING.format(id=winners[0][1]["author"])
-                names = ", ".join(f'{win[1]["name"]} ({PING.format(id=win[1]["author"])})' for win in winners)
+                congratulations = (
+                    "to all"
+                    if len(winners) > 1
+                    else PING.format(id=winners[0][1]["author"])
+                )
+                names = ", ".join(
+                    f'{win[1]["name"]} ({PING.format(id=win[1]["author"])})'
+                    for win in winners
+                )
 
                 # display winners, their names and scores
                 await channel.send(
@@ -292,7 +326,10 @@ class SpookyNameRate(Cog):
                 )
 
                 # Send random party emojis
-                party = (random.choice([":partying_face:", ":tada:"]) for _ in range(random.randint(1, 10)))
+                party = (
+                    random.choice([":partying_face:", ":tada:"])
+                    for _ in range(random.randint(1, 10))
+                )
                 await channel.send(" ".join(party))
 
             async with self.checking_messages:  # Acquire the lock to delete the messages
@@ -323,7 +360,9 @@ class SpookyNameRate(Cog):
             return
 
         tomorrow_12pm = now + timedelta(days=1)
-        tomorrow_12pm = tomorrow_12pm.replace(hour=12, minute=0, second=0, microsecond=0)
+        tomorrow_12pm = tomorrow_12pm.replace(
+            hour=12, minute=0, second=0, microsecond=0
+        )
         await asyncio.sleep((tomorrow_12pm - now).seconds)
 
     async def get_responses_list(self, final: bool = False) -> Embed:
@@ -349,7 +388,10 @@ class SpookyNameRate(Cog):
             data = json.loads(data)
 
             embed.add_field(
-                name=(self.bot.get_user(data["author"]) or await self.bot.fetch_user(data["author"])).name,
+                name=(
+                    self.bot.get_user(data["author"])
+                    or await self.bot.fetch_user(data["author"])
+                ).name,
                 value=f"[{(data)['name']}](https://discord.com/channels/{Client.guild}/{channel.id}/{message_id})",
             )
 
@@ -362,7 +404,9 @@ class SpookyNameRate(Cog):
             Channels.community_bot_commands
         ) or await self.bot.fetch_channel(Channels.community_bot_commands)
         if not channel:
-            logger.warning("Bot is unable to get the #seasonalbot-commands channel. Please check the channel ID.")
+            logger.warning(
+                "Bot is unable to get the #seasonalbot-commands channel. Please check the channel ID."
+            )
         return channel
 
     @staticmethod

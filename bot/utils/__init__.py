@@ -38,7 +38,7 @@ async def disambiguate(
     timeout: float = 30,
     entries_per_page: int = 20,
     empty: bool = False,
-    embed: Optional[discord.Embed] = None
+    embed: Optional[discord.Embed] = None,
 ) -> str:
     """
     Has the user choose between multiple entries in case one could not be chosen automatically.
@@ -69,13 +69,20 @@ async def disambiguate(
 
         coro1 = ctx.bot.wait_for("message", check=check, timeout=timeout)
         coro2 = LinePaginator.paginate(
-            choices, ctx, embed=embed, max_lines=entries_per_page,
-            empty=empty, max_size=6000, timeout=9000
+            choices,
+            ctx,
+            embed=embed,
+            max_lines=entries_per_page,
+            empty=empty,
+            max_size=6000,
+            timeout=9000,
         )
 
         # wait_for timeout will go to except instead of the wait_for thing as I expected
         futures = [asyncio.ensure_future(coro1), asyncio.ensure_future(coro2)]
-        done, pending = await asyncio.wait(futures, return_when=asyncio.FIRST_COMPLETED, loop=ctx.bot.loop)
+        done, pending = await asyncio.wait(
+            futures, return_when=asyncio.FIRST_COMPLETED, loop=ctx.bot.loop
+        )
 
         # :yert:
         result = list(done)[0].result()
@@ -107,7 +114,11 @@ async def disambiguate(
 
 
 def replace_many(
-    sentence: str, replacements: dict, *, ignore_case: bool = False, match_case: bool = False
+    sentence: str,
+    replacements: dict,
+    *,
+    ignore_case: bool = False,
+    match_case: bool = False,
 ) -> str:
     """
     Replaces multiple substrings in a string given a mapping of strings.

@@ -8,7 +8,13 @@ from typing import Callable, Optional, Union
 
 from discord import Embed, Message
 from discord.ext import commands
-from discord.ext.commands import BadArgument, Cog, Context, MessageConverter, clean_content
+from discord.ext.commands import (
+    BadArgument,
+    Cog,
+    Context,
+    MessageConverter,
+    clean_content,
+)
 
 from bot import utils
 from bot.bot import Bot
@@ -57,7 +63,9 @@ class Fun(Cog):
     def __init__(self, bot: Bot):
         self.bot = bot
 
-        self._caesar_cipher_embed = json.loads(Path("bot/resources/fun/caesar_info.json").read_text("UTF-8"))
+        self._caesar_cipher_embed = json.loads(
+            Path("bot/resources/fun/caesar_info.json").read_text("UTF-8")
+        )
 
     @staticmethod
     def _get_random_die() -> str:
@@ -72,13 +80,26 @@ class Fun(Cog):
             dice = " ".join(self._get_random_die() for _ in range(num_rolls))
             await ctx.send(dice)
         else:
-            raise BadArgument(f"`{Client.prefix}roll` only supports between 1 and 6 rolls.")
+            raise BadArgument(
+                f"`{Client.prefix}roll` only supports between 1 and 6 rolls."
+            )
 
-    @commands.command(name="uwu", aliases=("uwuwize", "uwuify",))
-    async def uwu_command(self, ctx: Context, *, text: clean_content(fix_channel_mentions=True)) -> None:
+    @commands.command(
+        name="uwu",
+        aliases=(
+            "uwuwize",
+            "uwuify",
+        ),
+    )
+    async def uwu_command(
+        self, ctx: Context, *, text: clean_content(fix_channel_mentions=True)
+    ) -> None:
         """Converts a given `text` into it's uwu equivalent."""
         conversion_func = functools.partial(
-            utils.replace_many, replacements=UWU_WORDS, ignore_case=True, match_case=True
+            utils.replace_many,
+            replacements=UWU_WORDS,
+            ignore_case=True,
+            match_case=True,
         )
         text, embed = await Fun._get_text_and_embed(ctx, text)
         # Convert embed if it exists
@@ -91,14 +112,26 @@ class Fun(Cog):
             converted_text = f">>> {converted_text.lstrip('> ')}"
         await ctx.send(content=converted_text, embed=embed)
 
-    @commands.command(name="randomcase", aliases=("rcase", "randomcaps", "rcaps",))
-    async def randomcase_command(self, ctx: Context, *, text: clean_content(fix_channel_mentions=True)) -> None:
+    @commands.command(
+        name="randomcase",
+        aliases=(
+            "rcase",
+            "randomcaps",
+            "rcaps",
+        ),
+    )
+    async def randomcase_command(
+        self, ctx: Context, *, text: clean_content(fix_channel_mentions=True)
+    ) -> None:
         """Randomly converts the casing of a given `text`."""
+
         def conversion_func(text: str) -> str:
             """Randomly converts the casing of a given string."""
             return "".join(
-                char.upper() if round(random.random()) else char.lower() for char in text
+                char.upper() if round(random.random()) else char.lower()
+                for char in text
             )
+
         text, embed = await Fun._get_text_and_embed(ctx, text)
         # Convert embed if it exists
         if embed is not None:
@@ -110,7 +143,13 @@ class Fun(Cog):
             converted_text = f">>> {converted_text.lstrip('> ')}"
         await ctx.send(content=converted_text, embed=embed)
 
-    @commands.group(name="caesarcipher", aliases=("caesar", "cc",))
+    @commands.group(
+        name="caesarcipher",
+        aliases=(
+            "caesar",
+            "cc",
+        ),
+    )
     async def caesarcipher_group(self, ctx: Context) -> None:
         """
         Translates a message using the Caesar Cipher.
@@ -129,7 +168,9 @@ class Fun(Cog):
         await ctx.send(embed=embed)
 
     @staticmethod
-    async def _caesar_cipher(ctx: Context, offset: int, msg: str, left_shift: bool = False) -> None:
+    async def _caesar_cipher(
+        ctx: Context, offset: int, msg: str, left_shift: bool = False
+    ) -> None:
         """
         Given a positive integer `offset`, translates and sends the given `msg`.
 
@@ -160,8 +201,17 @@ class Fun(Cog):
 
         await ctx.send(content=converted_text, embed=embed)
 
-    @caesarcipher_group.command(name="encrypt", aliases=("rightshift", "rshift", "enc",))
-    async def caesarcipher_encrypt(self, ctx: Context, offset: int, *, msg: str) -> None:
+    @caesarcipher_group.command(
+        name="encrypt",
+        aliases=(
+            "rightshift",
+            "rshift",
+            "enc",
+        ),
+    )
+    async def caesarcipher_encrypt(
+        self, ctx: Context, offset: int, *, msg: str
+    ) -> None:
         """
         Given a positive integer `offset`, encrypt the given `msg`.
 
@@ -171,8 +221,17 @@ class Fun(Cog):
         """
         await self._caesar_cipher(ctx, offset, msg, left_shift=False)
 
-    @caesarcipher_group.command(name="decrypt", aliases=("leftshift", "lshift", "dec",))
-    async def caesarcipher_decrypt(self, ctx: Context, offset: int, *, msg: str) -> None:
+    @caesarcipher_group.command(
+        name="decrypt",
+        aliases=(
+            "leftshift",
+            "lshift",
+            "dec",
+        ),
+    )
+    async def caesarcipher_decrypt(
+        self, ctx: Context, offset: int, *, msg: str
+    ) -> None:
         """
         Given a positive integer `offset`, decrypt the given `msg`.
 
@@ -183,7 +242,9 @@ class Fun(Cog):
         await self._caesar_cipher(ctx, offset, msg, left_shift=True)
 
     @staticmethod
-    async def _get_text_and_embed(ctx: Context, text: str) -> tuple[str, Optional[Embed]]:
+    async def _get_text_and_embed(
+        ctx: Context, text: str
+    ) -> tuple[str, Optional[Embed]]:
         """
         Attempts to extract the text and embed from a possible link to a discord Message.
 
@@ -223,7 +284,15 @@ class Fun(Cog):
         return text
 
     @staticmethod
-    def _convert_embed(func: Callable[[str, ], str], embed: Embed) -> Embed:
+    def _convert_embed(
+        func: Callable[
+            [
+                str,
+            ],
+            str,
+        ],
+        embed: Embed,
+    ) -> Embed:
         """
         Converts the text in an embed using a given conversion function, then return the embed.
 

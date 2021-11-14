@@ -64,8 +64,7 @@ def format_internal_eval_exception(exc_info: ExcInfo, code: str) -> str:
             name = frame.name
 
         output.append(
-            f'  File "{frame.filename}", line {frame.lineno}, in {name}\n'
-            f"    {line}"
+            f'  File "{frame.filename}", line {frame.lineno}, in {name}\n' f"    {line}"
         )
 
     output.extend(traceback.format_exception_only(exc_type, exc_value))
@@ -112,7 +111,9 @@ class EvalContext:
     @property
     def locals(self) -> dict[str, Any]:
         """Return a mapping of names->values needed for evaluation."""
-        return {**collections.ChainMap(self.dependencies, self.context_vars, self._locals)}
+        return {
+            **collections.ChainMap(self.dependencies, self.context_vars, self._locals)
+        }
 
     @locals.setter
     def locals(self, locals_: dict[str, Any]) -> None:
@@ -134,7 +135,9 @@ class EvalContext:
             log.debug("Got a SyntaxError while parsing the eval code")
             return "".join(traceback.format_exception(*sys.exc_info(), limit=0))
 
-        log.trace("Parsing the AST to see if there's a trailing expression we need to capture")
+        log.trace(
+            "Parsing the AST to see if there's a trailing expression we need to capture"
+        )
         code_tree = CaptureLastExpression(code_tree).capture()
 
         log.trace("Wrapping the AST in the AST of the wrapper coroutine")
@@ -146,7 +149,9 @@ class EvalContext:
     async def run_eval(self) -> Namespace:
         """Run the evaluation and return the updated locals."""
         log.trace("Compiling the AST to bytecode using `exec` mode")
-        compiled_code = compile(self.eval_tree, filename=INTERNAL_EVAL_FRAMENAME, mode="exec")
+        compiled_code = compile(
+            self.eval_tree, filename=INTERNAL_EVAL_FRAMENAME, mode="exec"
+        )
 
         log.trace("Executing the compiled code with the desired namespace environment")
         exec(compiled_code, self.locals)  # noqa: B102,S102
@@ -226,11 +231,13 @@ class CaptureLastExpression(ast.NodeTransformer):
 
         log.trace("Found a trailing last expression in the evaluation code")
 
-        log.trace("Creating assignment statement with trailing expression as the right-hand side")
+        log.trace(
+            "Creating assignment statement with trailing expression as the right-hand side"
+        )
         right_hand_side = list(ast.iter_child_nodes(node))[0]
 
         assignment = ast.Assign(
-            targets=[ast.Name(id='_value_last_expression', ctx=ast.Store())],
+            targets=[ast.Name(id="_value_last_expression", ctx=ast.Store())],
             value=right_hand_side,
             lineno=node.lineno,
             col_offset=0,

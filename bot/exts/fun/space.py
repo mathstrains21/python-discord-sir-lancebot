@@ -44,7 +44,7 @@ class Space(Cog):
             self.rovers[rover["name"].lower()] = {
                 "min_date": rover["landing_date"],
                 "max_date": rover["max_date"],
-                "max_sol": rover["max_sol"]
+                "max_sol": rover["max_sol"],
             }
 
     @group(name="space", invoke_without_command=True)
@@ -65,12 +65,16 @@ class Space(Cog):
             try:
                 apod_date = datetime.strptime(date, "%Y-%m-%d").date()
             except ValueError:
-                await ctx.send(f"Invalid date {date}. Please make sure your date is in format YYYY-MM-DD.")
+                await ctx.send(
+                    f"Invalid date {date}. Please make sure your date is in format YYYY-MM-DD."
+                )
                 return
 
             now = datetime.now().date()
             if APOD_MIN_DATE > apod_date or now < apod_date:
-                await ctx.send(f"Date must be between {APOD_MIN_DATE.isoformat()} and {now.isoformat()} (today).")
+                await ctx.send(
+                    f"Date must be between {APOD_MIN_DATE.isoformat()} and {now.isoformat()} (today)."
+                )
                 return
 
             params["date"] = apod_date.isoformat()
@@ -81,21 +85,21 @@ class Space(Cog):
             embed=self.create_nasa_embed(
                 f"Astronomy Picture of the Day - {result['date']}",
                 result["explanation"],
-                result["url"]
+                result["url"],
             )
         )
 
     @space.command(name="nasa")
     async def nasa(self, ctx: Context, *, search_term: Optional[str]) -> None:
         """Get random NASA information/facts + image. Support `search_term` parameter for more specific search."""
-        params = {
-            "media_type": "image"
-        }
+        params = {"media_type": "image"}
         if search_term:
             params["q"] = search_term
 
         # Don't use API key, no need for this.
-        data = await self.fetch_from_nasa("search", params, NASA_IMAGES_BASE_URL, use_api_key=False)
+        data = await self.fetch_from_nasa(
+            "search", params, NASA_IMAGES_BASE_URL, use_api_key=False
+        )
         if len(data["collection"]["items"]) == 0:
             await ctx.send(f"Can't find any items with search term `{search_term}`.")
             return
@@ -106,7 +110,7 @@ class Space(Cog):
             embed=self.create_nasa_embed(
                 item["data"][0]["title"],
                 item["data"][0]["description"],
-                item["links"][0]["href"]
+                item["links"][0]["href"],
             )
         )
 
@@ -117,7 +121,9 @@ class Space(Cog):
             try:
                 show_date = datetime.strptime(date, "%Y-%m-%d").date().isoformat()
             except ValueError:
-                await ctx.send(f"Invalid date {date}. Please make sure your date is in format YYYY-MM-DD.")
+                await ctx.send(
+                    f"Invalid date {date}. Please make sure your date is in format YYYY-MM-DD."
+                )
                 return
         else:
             show_date = None
@@ -126,7 +132,7 @@ class Space(Cog):
         data = await self.fetch_from_nasa(
             f"api/natural{f'/date/{show_date}' if show_date else ''}",
             base=NASA_EPIC_BASE_URL,
-            use_api_key=False
+            use_api_key=False,
         )
         if len(data) < 1:
             await ctx.send("Can't find any images in this date.")
@@ -139,16 +145,16 @@ class Space(Cog):
 
         await ctx.send(
             embed=self.create_nasa_embed(
-                "Earth Image", item["caption"], image_url, f" \u2022 Identifier: {item['identifier']}"
+                "Earth Image",
+                item["caption"],
+                image_url,
+                f" \u2022 Identifier: {item['identifier']}",
             )
         )
 
     @space.group(name="mars", invoke_without_command=True)
     async def mars(
-        self,
-        ctx: Context,
-        date: Optional[DateConverter],
-        rover: str = "curiosity"
+        self, ctx: Context, date: Optional[DateConverter], rover: str = "curiosity"
     ) -> None:
         """
         Get random Mars image by date. Support both SOL (martian solar day) and earth date and rovers.
@@ -175,7 +181,9 @@ class Space(Cog):
         else:
             params["earth_date"] = date.date().isoformat()
 
-        result = await self.fetch_from_nasa(f"mars-photos/api/v1/rovers/{rover}/photos", params)
+        result = await self.fetch_from_nasa(
+            f"mars-photos/api/v1/rovers/{rover}/photos", params
+        )
         if len(result["photos"]) < 1:
             err_msg = (
                 f"We can't find result in date "
@@ -189,23 +197,28 @@ class Space(Cog):
         item = random.choice(result["photos"])
         await ctx.send(
             embed=self.create_nasa_embed(
-                f"{item['rover']['name']}'s {item['camera']['full_name']} Mars Image", "", item["img_src"],
+                f"{item['rover']['name']}'s {item['camera']['full_name']} Mars Image",
+                "",
+                item["img_src"],
             )
         )
 
     @mars.command(name="dates", aliases=("d", "date", "rover", "rovers", "r"))
     async def dates(self, ctx: Context) -> None:
         """Get current available rovers photo date ranges."""
-        await ctx.send("\n".join(
-            f"**{r.capitalize()}:** {i['min_date']} **-** {i['max_date']}" for r, i in self.rovers.items()
-        ))
+        await ctx.send(
+            "\n".join(
+                f"**{r.capitalize()}:** {i['min_date']} **-** {i['max_date']}"
+                for r, i in self.rovers.items()
+            )
+        )
 
     async def fetch_from_nasa(
         self,
         endpoint: str,
         additional_params: Optional[dict[str, Any]] = None,
         base: Optional[str] = NASA_BASE_URL,
-        use_api_key: bool = True
+        use_api_key: bool = True,
     ) -> dict[str, Any]:
         """Fetch information from NASA API, return result."""
         params = {}
@@ -216,15 +229,20 @@ class Space(Cog):
         if additional_params is not None:
             params.update(additional_params)
 
-        async with self.http_session.get(url=f"{base}/{endpoint}?{urlencode(params)}") as resp:
+        async with self.http_session.get(
+            url=f"{base}/{endpoint}?{urlencode(params)}"
+        ) as resp:
             return await resp.json()
 
-    def create_nasa_embed(self, title: str, description: str, image: str, footer: Optional[str] = "") -> Embed:
+    def create_nasa_embed(
+        self, title: str, description: str, image: str, footer: Optional[str] = ""
+    ) -> Embed:
         """Generate NASA commands embeds. Required: title, description and image URL, footer (addition) is optional."""
-        return Embed(
-            title=title,
-            description=description
-        ).set_image(url=image).set_footer(text="Powered by NASA API" + footer)
+        return (
+            Embed(title=title, description=description)
+            .set_image(url=image)
+            .set_footer(text="Powered by NASA API" + footer)
+        )
 
 
 def setup(bot: Bot) -> None:

@@ -22,8 +22,11 @@ class EarthPhotos(commands.Cog):
         """Returns a random photo of earth, sourced from Unsplash."""
         async with ctx.typing():
             async with self.bot.http_session.get(
-                    API_URL,
-                    params={"query": "planet_earth", "client_id": Tokens.unsplash_access_key}
+                API_URL,
+                params={
+                    "query": "planet_earth",
+                    "client_id": Tokens.unsplash_access_key,
+                },
             ) as r:
                 jsondata = await r.json()
                 linksdata = jsondata.get("urls")
@@ -37,14 +40,14 @@ class EarthPhotos(commands.Cog):
                 rf = "?utm_source=Sir%20Lancebot&utm_medium=referral"
             async with self.bot.http_session.get(
                 downloadlinksdata.get("download_location"),
-                    params={"client_id": Tokens.unsplash_access_key}
+                params={"client_id": Tokens.unsplash_access_key},
             ) as _:
                 pass
 
             embed = discord.Embed(
                 title="Earth Photo",
                 description="A photo of Earth 🌎 from Unsplash.",
-                color=Colours.grass_green
+                color=Colours.grass_green,
             )
             embed.set_image(url=embedlink)
             embed.add_field(
@@ -52,7 +55,7 @@ class EarthPhotos(commands.Cog):
                 value=(
                     f"Photo by [{username}]({profile}{rf}) "
                     f"on [Unsplash](https://unsplash.com{rf})."
-                )
+                ),
             )
             await ctx.send(embed=embed)
 

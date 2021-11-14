@@ -12,7 +12,9 @@ from bot.constants import Colours, NEGATIVE_REPLIES
 
 log = logging.getLogger(__name__)
 
-RIDDLE_QUESTIONS = loads(Path("bot/resources/holidays/easter/easter_riddle.json").read_text("utf8"))
+RIDDLE_QUESTIONS = loads(
+    Path("bot/resources/holidays/easter/easter_riddle.json").read_text("utf8")
+)
 
 TIMELIMIT = 10
 
@@ -34,7 +36,9 @@ class EasterRiddle(commands.Cog):
         The duration of the hint interval can be configured by changing the TIMELIMIT constant in this file.
         """
         if self.current_channel:
-            await ctx.send(f"A riddle is already being solved in {self.current_channel.mention}!")
+            await ctx.send(
+                f"A riddle is already being solved in {self.current_channel.mention}!"
+            )
             return
 
         # Don't let users start in a DM
@@ -43,7 +47,7 @@ class EasterRiddle(commands.Cog):
                 embed=discord.Embed(
                     title=random.choice(NEGATIVE_REPLIES),
                     description="You can't start riddles in DMs",
-                    colour=discord.Colour.red()
+                    colour=discord.Colour.red(),
                 )
             )
             return
@@ -57,22 +61,22 @@ class EasterRiddle(commands.Cog):
 
         description = f"You have {TIMELIMIT} seconds before the first hint."
 
-        riddle_embed = discord.Embed(title=question, description=description, colour=Colours.pink)
+        riddle_embed = discord.Embed(
+            title=question, description=description, colour=Colours.pink
+        )
 
         await ctx.send(embed=riddle_embed)
         await asyncio.sleep(TIMELIMIT)
 
         hint_embed = discord.Embed(
-            title=f"Here's a hint: {hints[0]}!",
-            colour=Colours.pink
+            title=f"Here's a hint: {hints[0]}!", colour=Colours.pink
         )
 
         await ctx.send(embed=hint_embed)
         await asyncio.sleep(TIMELIMIT)
 
         hint_embed = discord.Embed(
-            title=f"Here's a hint: {hints[1]}!",
-            colour=Colours.pink
+            title=f"Here's a hint: {hints[1]}!", colour=Colours.pink
         )
 
         await ctx.send(embed=hint_embed)
@@ -85,8 +89,7 @@ class EasterRiddle(commands.Cog):
             content = "Nobody got it right..."
 
         answer_embed = discord.Embed(
-            title=f"The answer is: {self.correct}!",
-            colour=Colours.pink
+            title=f"The answer is: {self.correct}!", colour=Colours.pink
         )
 
         await ctx.send(content, embed=answer_embed)

@@ -13,7 +13,13 @@ from rapidfuzz import process
 from bot import constants
 from bot.bot import Bot
 from bot.constants import Emojis
-from bot.utils.pagination import FIRST_EMOJI, LAST_EMOJI, LEFT_EMOJI, LinePaginator, RIGHT_EMOJI
+from bot.utils.pagination import (
+    FIRST_EMOJI,
+    LAST_EMOJI,
+    LEFT_EMOJI,
+    LinePaginator,
+    RIGHT_EMOJI,
+)
 
 DELETE_EMOJI = Emojis.trashcan
 
@@ -81,7 +87,7 @@ class HelpSession:
         cleanup: bool = False,
         only_can_run: bool = True,
         show_hidden: bool = False,
-        max_lines: int = 15
+        max_lines: int = 15,
     ):
         """Creates an instance of the HelpSession class."""
         self._ctx = ctx
@@ -142,7 +148,7 @@ class HelpSession:
             return Cog(
                 name=cog.category if hasattr(cog, "category") else cog.qualified_name,
                 description=description or cog.description,
-                commands=tuple(itertools.chain.from_iterable(cmds))  # Flatten the list
+                commands=tuple(itertools.chain.from_iterable(cmds)),  # Flatten the list
             )
 
         self._handle_not_found(query)
@@ -306,7 +312,10 @@ class HelpSession:
         signature = self._get_command_params(self.query)
         parent = self.query.full_parent_name + " " if self.query.parent else ""
         paginator.add_line(f"**```\n{prefix}{parent}{signature}\n```**")
-        aliases = [f"`{alias}`" if not parent else f"`{parent} {alias}`" for alias in self.query.aliases]
+        aliases = [
+            f"`{alias}`" if not parent else f"`{parent} {alias}`"
+            for alias in self.query.aliases
+        ]
         aliases += [f"`{alias}`" for alias in getattr(self.query, "root_aliases", ())]
         aliases = ", ".join(sorted(aliases))
         if aliases:
@@ -340,7 +349,9 @@ class HelpSession:
         for category, cmds in grouped:
             await self._format_command_category(paginator, category, list(cmds))
 
-    async def _format_command_category(self, paginator: LinePaginator, category: str, cmds: list[Command]) -> None:
+    async def _format_command_category(
+        self, paginator: LinePaginator, category: str, cmds: list[Command]
+    ) -> None:
         cmds = sorted(cmds, key=lambda c: c.name)
         cat_cmds = []
         for command in cmds:
@@ -471,7 +482,7 @@ class HelpSession:
     @property
     def is_last_page(self) -> bool:
         """Check if the session is currently showing the last page."""
-        return self._current_page == (len(self._pages)-1)
+        return self._current_page == (len(self._pages) - 1)
 
     async def do_first(self) -> None:
         """Event that is called when the user requests the first page."""
@@ -481,17 +492,17 @@ class HelpSession:
     async def do_back(self) -> None:
         """Event that is called when the user requests the previous page."""
         if not self.is_first_page:
-            await self.update_page(self._current_page-1)
+            await self.update_page(self._current_page - 1)
 
     async def do_next(self) -> None:
         """Event that is called when the user requests the next page."""
         if not self.is_last_page:
-            await self.update_page(self._current_page+1)
+            await self.update_page(self._current_page + 1)
 
     async def do_end(self) -> None:
         """Event that is called when the user requests the last page."""
         if not self.is_last_page:
-            await self.update_page(len(self._pages)-1)
+            await self.update_page(len(self._pages) - 1)
 
     async def do_stop(self) -> None:
         """Event that is called when the user requests to stop the help session."""

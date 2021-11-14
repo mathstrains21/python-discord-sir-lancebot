@@ -102,8 +102,7 @@ class Subreddit(commands.Converter):
             sub = f"r/{sub}"
 
         resp = await ctx.bot.http_session.get(
-            "https://www.reddit.com/subreddits/search.json",
-            params={"q": sub}
+            "https://www.reddit.com/subreddits/search.json", params={"q": sub}
         )
 
         json = await resp.json()

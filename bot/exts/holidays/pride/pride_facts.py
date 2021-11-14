@@ -37,19 +37,25 @@ class PrideFacts(commands.Cog):
         """Provides a fact from any previous day, or today."""
         now = datetime.utcnow()
         previous_years_facts = (y for x, y in FACTS.items() if int(x) < now.year)
-        current_year_facts = FACTS.get(str(now.year), [])[:now.day]
-        previous_facts = current_year_facts + [x for y in previous_years_facts for x in y]
+        current_year_facts = FACTS.get(str(now.year), [])[: now.day]
+        previous_facts = current_year_facts + [
+            x for y in previous_years_facts for x in y
+        ]
         try:
             await ctx.send(embed=self.make_embed(random.choice(previous_facts)))
         except IndexError:
             await ctx.send("No facts available")
 
-    async def send_select_fact(self, target: discord.abc.Messageable, _date: Union[str, datetime]) -> None:
+    async def send_select_fact(
+        self, target: discord.abc.Messageable, _date: Union[str, datetime]
+    ) -> None:
         """Provides the fact for the specified day, if the day is today, or is in the past."""
         now = datetime.utcnow()
         if isinstance(_date, str):
             try:
-                date = dateutil.parser.parse(_date, dayfirst=False, yearfirst=False, fuzzy=True)
+                date = dateutil.parser.parse(
+                    _date, dayfirst=False, yearfirst=False, fuzzy=True
+                )
             except (ValueError, OverflowError) as err:
                 await target.send(f"Error parsing date: {err}")
                 return
@@ -57,7 +63,9 @@ class PrideFacts(commands.Cog):
             date = _date
         if date.year < now.year or (date.year == now.year and date.day <= now.day):
             try:
-                await target.send(embed=self.make_embed(FACTS[str(date.year)][date.day - 1]))
+                await target.send(
+                    embed=self.make_embed(FACTS[str(date.year)][date.day - 1])
+                )
             except KeyError:
                 await target.send(f"The year {date.year} is not yet supported")
                 return
@@ -87,11 +95,7 @@ class PrideFacts(commands.Cog):
     @staticmethod
     def make_embed(fact: str) -> discord.Embed:
         """Makes a nice embed for the fact to be sent."""
-        return discord.Embed(
-            colour=Colours.pink,
-            title="Pride Fact!",
-            description=fact
-        )
+        return discord.Embed(colour=Colours.pink, title="Pride Fact!", description=fact)
 
 
 def setup(bot: Bot) -> None:

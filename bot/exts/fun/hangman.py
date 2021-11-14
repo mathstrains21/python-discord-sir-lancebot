@@ -47,19 +47,19 @@ class Hangman(commands.Cog):
         hangman_embed.set_image(url=IMAGES[tries])
         hangman_embed.add_field(
             name=f"You've guessed `{user_guess}` so far.",
-            value="Guess the word by sending a message with a letter!"
+            value="Guess the word by sending a message with a letter!",
         )
         hangman_embed.set_footer(text=f"Tries remaining: {tries}")
         return hangman_embed
 
     @commands.command()
     async def hangman(
-            self,
-            ctx: commands.Context,
-            min_length: int = 0,
-            max_length: int = 25,
-            min_unique_letters: int = 0,
-            max_unique_letters: int = 25,
+        self,
+        ctx: commands.Context,
+        min_length: int = 0,
+        max_length: int = 25,
+        min_unique_letters: int = 0,
+        max_unique_letters: int = 25,
     ) -> None:
         """
         Play hangman against the bot, where you have to guess the word it has provided!
@@ -72,7 +72,8 @@ class Hangman(commands.Cog):
         """
         # Filtering the list of all words depending on the configuration
         filtered_words = [
-            word for word in ALL_WORDS
+            word
+            for word in ALL_WORDS
             if min_length < len(word) < max_length
             and min_unique_letters < len(set(word)) < max_unique_letters
         ]
@@ -89,7 +90,7 @@ class Hangman(commands.Cog):
         word = choice(filtered_words)
         # `pretty_word` is used for comparing the indices where the guess of the user is similar to the word
         # The `user_guess` variable is prettified by adding spaces between every dash, and so is the `pretty_word`
-        pretty_word = ''.join([f"{letter} " for letter in word])[:-1]
+        pretty_word = "".join([f"{letter} " for letter in word])[:-1]
         user_guess = ("_ " * len(word))[:-1]
         tries = 6
         guessed_letters = set()
@@ -97,22 +98,20 @@ class Hangman(commands.Cog):
         def check(msg: Message) -> bool:
             return msg.author == ctx.author and msg.channel == ctx.channel
 
-        original_message = await ctx.send(embed=Embed(
-            title="Hangman",
-            description="Loading game...",
-            color=Colours.soft_green
-        ))
+        original_message = await ctx.send(
+            embed=Embed(
+                title="Hangman", description="Loading game...", color=Colours.soft_green
+            )
+        )
 
         # Game loop
-        while user_guess.replace(' ', '') != word:
+        while user_guess.replace(" ", "") != word:
             # Edit the message to the current state of the game
             await original_message.edit(embed=self.create_embed(tries, user_guess))
 
             try:
                 message = await self.bot.wait_for(
-                    event="message",
-                    timeout=60.0,
-                    check=check
+                    event="message", timeout=60.0, check=check
                 )
             except TimeoutError:
                 timeout_embed = Embed(
@@ -147,9 +146,16 @@ class Hangman(commands.Cog):
 
             # Checks for correct guesses from the user
             elif normalized_content in word:
-                positions = {idx for idx, letter in enumerate(pretty_word) if letter == normalized_content}
+                positions = {
+                    idx
+                    for idx, letter in enumerate(pretty_word)
+                    if letter == normalized_content
+                }
                 user_guess = "".join(
-                    [normalized_content if index in positions else dash for index, dash in enumerate(user_guess)]
+                    [
+                        normalized_content if index in positions else dash
+                        for index, dash in enumerate(user_guess)
+                    ]
                 )
 
             else:
@@ -161,7 +167,9 @@ class Hangman(commands.Cog):
                         description=f"The word was `{word}`.",
                         color=Colours.soft_red,
                     )
-                    await original_message.edit(embed=self.create_embed(tries, user_guess))
+                    await original_message.edit(
+                        embed=self.create_embed(tries, user_guess)
+                    )
                     await ctx.send(embed=losing_embed)
                     return
 
@@ -172,7 +180,7 @@ class Hangman(commands.Cog):
         win_embed = Embed(
             title="You won!",
             description=f"The word was `{word}`.",
-            color=Colours.grass_green
+            color=Colours.grass_green,
         )
         await ctx.send(embed=win_embed)
 

@@ -28,7 +28,7 @@ MESSAGE_MAPPING = {
     "bomb": ":bomb:",
     "hidden": ":grey_question:",
     "flag": ":flag_black:",
-    "x": ":x:"
+    "x": ":x:",
 }
 
 log = logging.getLogger(__name__)
@@ -70,10 +70,8 @@ class Minesweeper(commands.Cog):
     def generate_board(self, bomb_chance: float) -> GameBoard:
         """Generate a 2d array for the board."""
         board: GameBoard = [
-            [
-                "bomb" if random() <= bomb_chance else "number"
-                for _ in range(10)
-            ] for _ in range(10)
+            ["bomb" if random() <= bomb_chance else "number" for _ in range(10)]
+            for _ in range(10)
         ]
 
         # make sure there is always a free cell
@@ -108,10 +106,14 @@ class Minesweeper(commands.Cog):
         return discord_msg
 
     @minesweeper_group.command(name="start")
-    async def start_command(self, ctx: commands.Context, bomb_chance: float = .2) -> None:
+    async def start_command(
+        self, ctx: commands.Context, bomb_chance: float = 0.2
+    ) -> None:
         """Start a game of Minesweeper."""
         if ctx.author.id in self.games:  # Player is already playing
-            await ctx.send(f"{ctx.author.mention} you already have a game running!", delete_after=2)
+            await ctx.send(
+                f"{ctx.author.mention} you already have a game running!", delete_after=2
+            )
             await ctx.message.delete(delay=2)
             return
 
@@ -121,18 +123,26 @@ class Minesweeper(commands.Cog):
                 f"Close the game with `{Client.prefix}ms end`\n"
             )
         except discord.errors.Forbidden:
-            log.debug(f"{ctx.author.name} ({ctx.author.id}) has disabled DMs from server members.")
-            await ctx.send(f":x: {ctx.author.mention}, please enable DMs to play minesweeper.")
+            log.debug(
+                f"{ctx.author.name} ({ctx.author.id}) has disabled DMs from server members."
+            )
+            await ctx.send(
+                f":x: {ctx.author.mention}, please enable DMs to play minesweeper."
+            )
             return
 
         # Add game to list
         board: GameBoard = self.generate_board(bomb_chance)
         revealed_board: GameBoard = [["hidden"] * 10 for _ in range(10)]
-        dm_msg = await ctx.author.send(f"Here's your board!\n{self.format_for_discord(revealed_board)}")
+        dm_msg = await ctx.author.send(
+            f"Here's your board!\n{self.format_for_discord(revealed_board)}"
+        )
 
         if ctx.guild:
             await ctx.send(f"{ctx.author.mention} is playing Minesweeper.")
-            chat_msg = await ctx.send(f"Here's their board!\n{self.format_for_discord(revealed_board)}")
+            chat_msg = await ctx.send(
+                f"Here's their board!\n{self.format_for_discord(revealed_board)}"
+            )
         else:
             chat_msg = None
 
@@ -141,20 +151,26 @@ class Minesweeper(commands.Cog):
             revealed=revealed_board,
             dm_msg=dm_msg,
             chat_msg=chat_msg,
-            activated_on_server=ctx.guild is not None
+            activated_on_server=ctx.guild is not None,
         )
 
     async def update_boards(self, ctx: commands.Context) -> None:
         """Update both playing boards."""
         game = self.games[ctx.author.id]
         await game.dm_msg.delete()
-        game.dm_msg = await ctx.author.send(f"Here's your board!\n{self.format_for_discord(game.revealed)}")
+        game.dm_msg = await ctx.author.send(
+            f"Here's your board!\n{self.format_for_discord(game.revealed)}"
+        )
         if game.activated_on_server:
-            await game.chat_msg.edit(content=f"Here's their board!\n{self.format_for_discord(game.revealed)}")
+            await game.chat_msg.edit(
+                content=f"Here's their board!\n{self.format_for_discord(game.revealed)}"
+            )
 
     @commands.dm_only()
     @minesweeper_group.command(name="flag")
-    async def flag_command(self, ctx: commands.Context, *coordinates: CoordinateConverter) -> None:
+    async def flag_command(
+        self, ctx: commands.Context, *coordinates: CoordinateConverter
+    ) -> None:
         """Place multiple flags on the board."""
         if ctx.author.id not in self.games:
             raise UserNotPlayingError
@@ -179,16 +195,22 @@ class Minesweeper(commands.Cog):
         self.reveal_bombs(game.revealed, game.board)
         await ctx.author.send(":fire: You lost! :fire:")
         if game.activated_on_server:
-            await game.chat_msg.channel.send(f":fire: {ctx.author.mention} just lost Minesweeper! :fire:")
+            await game.chat_msg.channel.send(
+                f":fire: {ctx.author.mention} just lost Minesweeper! :fire:"
+            )
 
     async def won(self, ctx: commands.Context) -> None:
         """The player won the game."""
         game = self.games[ctx.author.id]
         await ctx.author.send(":tada: You won! :tada:")
         if game.activated_on_server:
-            await game.chat_msg.channel.send(f":tada: {ctx.author.mention} just won Minesweeper! :tada:")
+            await game.chat_msg.channel.send(
+                f":tada: {ctx.author.mention} just won Minesweeper! :tada:"
+            )
 
-    def reveal_zeros(self, revealed: GameBoard, board: GameBoard, x: int, y: int) -> None:
+    def reveal_zeros(
+        self, revealed: GameBoard, board: GameBoard, x: int, y: int
+    ) -> None:
         """Recursively reveal adjacent cells when a 0 cell is encountered."""
         for x_, y_ in self.get_neighbours(x, y):
             if revealed[y_][x_] != "hidden":
@@ -197,7 +219,9 @@ class Minesweeper(commands.Cog):
             if board[y_][x_] == 0:
                 self.reveal_zeros(revealed, board, x_, y_)
 
-    async def check_if_won(self, ctx: commands.Context, revealed: GameBoard, board: GameBoard) -> bool:
+    async def check_if_won(
+        self, ctx: commands.Context, revealed: GameBoard, board: GameBoard
+    ) -> bool:
         """Checks if a player has won."""
         if any(
             revealed[y][x] in ["hidden", "flag"] and board[y][x] != "bomb"
@@ -215,7 +239,7 @@ class Minesweeper(commands.Cog):
         revealed: GameBoard,
         board: GameBoard,
         x: int,
-        y: int
+        y: int,
     ) -> bool:
         """
         Reveal one square.
@@ -233,7 +257,9 @@ class Minesweeper(commands.Cog):
 
     @commands.dm_only()
     @minesweeper_group.command(name="reveal")
-    async def reveal_command(self, ctx: commands.Context, *coordinates: CoordinateConverter) -> None:
+    async def reveal_command(
+        self, ctx: commands.Context, *coordinates: CoordinateConverter
+    ) -> None:
         """Reveal multiple cells."""
         if ctx.author.id not in self.games:
             raise UserNotPlayingError

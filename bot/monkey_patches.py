@@ -32,7 +32,9 @@ class Command(commands.Command):
         self.root_aliases = kwargs.get("root_aliases", [])
 
         if not isinstance(self.root_aliases, (list, tuple)):
-            raise TypeError("Root aliases of a command must be a list or a tuple of strings.")
+            raise TypeError(
+                "Root aliases of a command must be a list or a tuple of strings."
+            )
 
 
 class Group(commands.Group):
@@ -49,7 +51,9 @@ class Group(commands.Group):
         self.root_aliases = kwargs.get("root_aliases", [])
 
         if not isinstance(self.root_aliases, (list, tuple)):
-            raise TypeError("Root aliases of a group must be a list or a tuple of strings.")
+            raise TypeError(
+                "Root aliases of a group must be a list or a tuple of strings."
+            )
 
 
 def patch_typing() -> None:
@@ -58,7 +62,9 @@ def patch_typing() -> None:
 
     Handle those issues by patching the trigger_typing method so it ignores 403's in general.
     """
-    log.debug("Patching send_typing, which should fix things breaking when discord disables typing events. Stay safe!")
+    log.debug(
+        "Patching send_typing, which should fix things breaking when discord disables typing events. Stay safe!"
+    )
 
     original = http.HTTPClient.send_typing
     last_403 = None
@@ -66,7 +72,9 @@ def patch_typing() -> None:
     async def honeybadger_type(self, channel_id: int) -> None:  # noqa: ANN001
         nonlocal last_403
         if last_403 and (datetime.utcnow() - last_403) < timedelta(minutes=5):
-            log.warning("Not sending typing event, we got a 403 less than 5 minutes ago.")
+            log.warning(
+                "Not sending typing event, we got a 403 less than 5 minutes ago."
+            )
             return
         try:
             await original(self, channel_id)

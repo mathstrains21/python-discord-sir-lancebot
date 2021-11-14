@@ -16,50 +16,111 @@ API_ROOT = "https://www.codewars.com/api/v1/code-challenges/{kata_id}"
 # Map difficulty for the kata to color we want to display in the embed.
 # These colors are representative of the colors that each kyu's level represents on codewars.com
 MAPPING_OF_KYU = {
-    8: 0xdddbda, 7: 0xdddbda, 6: 0xecb613, 5: 0xecb613,
-    4: 0x3c7ebb, 3: 0x3c7ebb, 2: 0x866cc7, 1: 0x866cc7
+    8: 0xDDDBDA,
+    7: 0xDDDBDA,
+    6: 0xECB613,
+    5: 0xECB613,
+    4: 0x3C7EBB,
+    3: 0x3C7EBB,
+    2: 0x866CC7,
+    1: 0x866CC7,
 }
 
 # Supported languages for a kata on codewars.com
 SUPPORTED_LANGUAGES = {
     "stable": [
-        "c", "c#", "c++", "clojure", "coffeescript", "coq", "crystal", "dart", "elixir",
-        "f#", "go", "groovy", "haskell", "java", "javascript", "kotlin", "lean", "lua", "nasm",
-        "php", "python", "racket", "ruby", "rust", "scala", "shell", "sql", "swift", "typescript"
+        "c",
+        "c#",
+        "c++",
+        "clojure",
+        "coffeescript",
+        "coq",
+        "crystal",
+        "dart",
+        "elixir",
+        "f#",
+        "go",
+        "groovy",
+        "haskell",
+        "java",
+        "javascript",
+        "kotlin",
+        "lean",
+        "lua",
+        "nasm",
+        "php",
+        "python",
+        "racket",
+        "ruby",
+        "rust",
+        "scala",
+        "shell",
+        "sql",
+        "swift",
+        "typescript",
     ],
     "beta": [
-        "agda", "bf", "cfml", "cobol", "commonlisp", "elm", "erlang", "factor",
-        "forth", "fortran", "haxe", "idris", "julia", "nim", "objective-c", "ocaml",
-        "pascal", "perl", "powershell", "prolog", "purescript", "r", "raku", "reason", "solidity", "vb.net"
-    ]
+        "agda",
+        "bf",
+        "cfml",
+        "cobol",
+        "commonlisp",
+        "elm",
+        "erlang",
+        "factor",
+        "forth",
+        "fortran",
+        "haxe",
+        "idris",
+        "julia",
+        "nim",
+        "objective-c",
+        "ocaml",
+        "pascal",
+        "perl",
+        "powershell",
+        "prolog",
+        "purescript",
+        "r",
+        "raku",
+        "reason",
+        "solidity",
+        "vb.net",
+    ],
 }
 
 
 class InformationDropdown(ui.Select):
     """A dropdown inheriting from ui.Select that allows finding out other information about the kata."""
 
-    def __init__(self, language_embed: Embed, tags_embed: Embed, other_info_embed: Embed, main_embed: Embed):
+    def __init__(
+        self,
+        language_embed: Embed,
+        tags_embed: Embed,
+        other_info_embed: Embed,
+        main_embed: Embed,
+    ):
         options = [
             SelectOption(
                 label="Main Information",
                 description="See the kata's difficulty, description, etc.",
-                emoji="🌎"
+                emoji="🌎",
             ),
             SelectOption(
                 label="Languages",
                 description="See what languages this kata supports!",
-                emoji=Emojis.reddit_post_text
+                emoji=Emojis.reddit_post_text,
             ),
             SelectOption(
                 label="Tags",
                 description="See what categories this kata falls under!",
-                emoji=Emojis.stackoverflow_tag
+                emoji=Emojis.stackoverflow_tag,
             ),
             SelectOption(
                 label="Other Information",
                 description="See how other people performed on this kata and more!",
-                emoji="ℹ"
-            )
+                emoji="ℹ",
+            ),
         ]
 
         # We map the option label to the embed instance so that it can be easily looked up later in O(1)
@@ -74,7 +135,7 @@ class InformationDropdown(ui.Select):
             placeholder="See more information regarding this kata",
             min_values=1,
             max_values=1,
-            options=options
+            options=options,
         )
 
     async def callback(self, interaction: Interaction) -> None:
@@ -112,16 +173,22 @@ class Challenges(commands.Cog):
                 error_embed = Embed(
                     title=choice(NEGATIVE_REPLIES),
                     description="We ran into an error when getting the kata from codewars.com, try again later.",
-                    color=Colours.soft_red
+                    color=Colours.soft_red,
                 )
-                log.error(f"Unexpected response from codewars.com, status code: {response.status}")
+                log.error(
+                    f"Unexpected response from codewars.com, status code: {response.status}"
+                )
                 return error_embed
 
             soup = BeautifulSoup(await response.text(), features="lxml")
-            first_kata_div = await to_thread(soup.find_all, "div", class_="item-title px-0")
+            first_kata_div = await to_thread(
+                soup.find_all, "div", class_="item-title px-0"
+            )
 
             if not first_kata_div:
-                raise commands.BadArgument("No katas could be found with the filters provided.")
+                raise commands.BadArgument(
+                    "No katas could be found with the filters provided."
+                )
             elif len(first_kata_div) >= 3:
                 first_kata_div = choice(first_kata_div[:3])
             elif "q=" not in search_link:
@@ -139,14 +206,18 @@ class Challenges(commands.Cog):
 
         Uses the codewars.com API to get information about the kata using `kata_id`.
         """
-        async with self.bot.http_session.get(API_ROOT.format(kata_id=kata_id)) as response:
+        async with self.bot.http_session.get(
+            API_ROOT.format(kata_id=kata_id)
+        ) as response:
             if response.status != 200:
                 error_embed = Embed(
                     title=choice(NEGATIVE_REPLIES),
                     description="We ran into an error when getting the kata information, try again later.",
-                    color=Colours.soft_red
+                    color=Colours.soft_red,
                 )
-                log.error(f"Unexpected response from codewars.com/api/v1, status code: {response.status}")
+                log.error(
+                    f"Unexpected response from codewars.com/api/v1, status code: {response.status}"
+                )
                 return error_embed
 
             return await response.json()
@@ -159,16 +230,22 @@ class Challenges(commands.Cog):
 
         # Ensuring it isn't over the length 1024
         if len(kata_description) > 1024:
-            kata_description = "\n".join(kata_description[:1000].split("\n")[:-1]) + "..."
+            kata_description = (
+                "\n".join(kata_description[:1000].split("\n")[:-1]) + "..."
+            )
             kata_description += f" [continue reading]({kata_url})"
 
         kata_embed = Embed(
             title=kata_information["name"],
             description=kata_description,
-            color=MAPPING_OF_KYU[int(kata_information["rank"]["name"].replace(" kyu", ""))],
-            url=kata_url
+            color=MAPPING_OF_KYU[
+                int(kata_information["rank"]["name"].replace(" kyu", ""))
+            ],
+            url=kata_url,
         )
-        kata_embed.add_field(name="Difficulty", value=kata_information["rank"]["name"], inline=False)
+        kata_embed.add_field(
+            name="Difficulty", value=kata_information["rank"]["name"], inline=False
+        )
         return kata_embed
 
     @staticmethod
@@ -181,7 +258,7 @@ class Challenges(commands.Cog):
             title=kata_information["name"],
             description=f"```yaml\nSupported Languages:\n{languages}\n```",
             color=Colours.python_blue,
-            url=kata_url
+            url=kata_url,
         )
         return language_embed
 
@@ -199,7 +276,7 @@ class Challenges(commands.Cog):
             title=kata_information["name"],
             description=f"```yaml\nTags:\n{tags}\n```",
             color=Colours.grass_green,
-            url=kata_url
+            url=kata_url,
         )
         return tags_embed
 
@@ -217,27 +294,27 @@ class Challenges(commands.Cog):
             title=kata_information["name"],
             description="```nim\nOther Information\n```",
             color=Colours.grass_green,
-            url=kata_url
+            url=kata_url,
         )
         embed.add_field(
             name="`Total Score`",
             value=f"```css\n{kata_information['voteScore']}\n```",
-            inline=False
+            inline=False,
         )
         embed.add_field(
             name="`Total Stars`",
             value=f"```css\n{kata_information['totalStars']}\n```",
-            inline=False
+            inline=False,
         )
         embed.add_field(
             name="`Total Completed`",
             value=f"```css\n{kata_information['totalCompleted']}\n```",
-            inline=False
+            inline=False,
         )
         embed.add_field(
             name="`Total Attempts`",
             value=f"```css\n{kata_information['totalAttempts']}\n```",
-            inline=False
+            inline=False,
         )
         return embed
 
@@ -256,7 +333,9 @@ class Challenges(commands.Cog):
 
     @commands.command(aliases=["kata"])
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def challenge(self, ctx: commands.Context, language: str = "python", *, query: str = None) -> None:
+    async def challenge(
+        self, ctx: commands.Context, language: str = "python", *, query: str = None
+    ) -> None:
         """
         The challenge command pulls a random kata (challenge) from codewars.com.
 
@@ -268,8 +347,13 @@ class Challenges(commands.Cog):
         `.challenge <language> <query>, <difficulty>` - Pulls a random challenge with the query provided,
         under that difficulty within the language's scope.
         """
-        if language.lower() not in SUPPORTED_LANGUAGES["stable"] + SUPPORTED_LANGUAGES["beta"]:
-            raise commands.BadArgument("This is not a recognized language on codewars.com!")
+        if (
+            language.lower()
+            not in SUPPORTED_LANGUAGES["stable"] + SUPPORTED_LANGUAGES["beta"]
+        ):
+            raise commands.BadArgument(
+                "This is not a recognized language on codewars.com!"
+            )
 
         get_kata_link = f"https://codewars.com/kata/search/{language}"
         params = {}
@@ -316,13 +400,12 @@ class Challenges(commands.Cog):
             main_embed=kata_embed,
             language_embed=language_embed,
             tags_embed=tags_embed,
-            other_info_embed=miscellaneous_embed
+            other_info_embed=miscellaneous_embed,
         )
-        kata_view = self.create_view(dropdown, f"https://codewars.com/kata/{first_kata_id}")
-        original_message = await ctx.send(
-            embed=kata_embed,
-            view=kata_view
+        kata_view = self.create_view(
+            dropdown, f"https://codewars.com/kata/{first_kata_id}"
         )
+        original_message = await ctx.send(embed=kata_embed, view=kata_view)
         dropdown.original_message = original_message
 
         wait_for_kata = await kata_view.wait()

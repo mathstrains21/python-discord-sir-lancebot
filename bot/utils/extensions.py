@@ -20,7 +20,9 @@ def walk_extensions() -> Iterator[str]:
     def on_error(name: str) -> NoReturn:
         raise ImportError(name=name)  # pragma: no cover
 
-    for module in pkgutil.walk_packages(exts.__path__, f"{exts.__name__}.", onerror=on_error):
+    for module in pkgutil.walk_packages(
+        exts.__path__, f"{exts.__name__}.", onerror=on_error
+    ):
         if unqualify(module.name).startswith("_"):
             # Ignore module/package names starting with an underscore.
             continue
@@ -41,5 +43,6 @@ async def invoke_help_command(ctx: Context) -> None:
         await ctx.invoke(help_command, ctx.command.qualified_name)
         return
     await ctx.send_help(ctx.command)
+
 
 EXTENSIONS = frozenset(walk_extensions())

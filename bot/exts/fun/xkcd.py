@@ -35,7 +35,9 @@ class XKCD(Cog):
             if resp.status == 200:
                 self.latest_comic_info = await resp.json()
             else:
-                log.debug(f"Failed to get latest XKCD comic information. Status code {resp.status}")
+                log.debug(
+                    f"Failed to get latest XKCD comic information. Status code {resp.status}"
+                )
 
     @command(name="xkcd")
     async def fetch_xkcd_comics(self, ctx: Context, comic: Optional[str]) -> None:
@@ -49,22 +51,34 @@ class XKCD(Cog):
         embed.colour = Colours.soft_red
 
         if comic and (comic := re.match(COMIC_FORMAT, comic)) is None:
-            embed.description = "Comic parameter should either be an integer or 'latest'."
+            embed.description = (
+                "Comic parameter should either be an integer or 'latest'."
+            )
             await ctx.send(embed=embed)
             return
 
-        comic = randint(1, self.latest_comic_info["num"]) if comic is None else comic.group(0)
+        comic = (
+            randint(1, self.latest_comic_info["num"])
+            if comic is None
+            else comic.group(0)
+        )
 
         if comic == "latest":
             info = self.latest_comic_info
         else:
-            async with self.bot.http_session.get(f"{BASE_URL}/{comic}/info.0.json") as resp:
+            async with self.bot.http_session.get(
+                f"{BASE_URL}/{comic}/info.0.json"
+            ) as resp:
                 if resp.status == 200:
                     info = await resp.json()
                 else:
                     embed.title = f"XKCD comic #{comic}"
-                    embed.description = f"{resp.status}: Could not retrieve xkcd comic #{comic}."
-                    log.debug(f"Retrieving xkcd comic #{comic} failed with status code {resp.status}.")
+                    embed.description = (
+                        f"{resp.status}: Could not retrieve xkcd comic #{comic}."
+                    )
+                    log.debug(
+                        f"Retrieving xkcd comic #{comic} failed with status code {resp.status}."
+                    )
                     await ctx.send(embed=embed)
                     return
 
@@ -75,7 +89,7 @@ class XKCD(Cog):
         if info["img"][-3:] in ("jpg", "png", "gif"):
             embed.set_image(url=info["img"])
             date = f"{info['year']}/{info['month']}/{info['day']}"
-            embed.set_footer(text=f"{date} - #{info['num']}, \'{info['safe_title']}\'")
+            embed.set_footer(text=f"{date} - #{info['num']}, '{info['safe_title']}'")
             embed.colour = Colours.soft_green
         else:
             embed.description = (

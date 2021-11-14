@@ -18,20 +18,20 @@ __all__ = ["InternalEval"]
 log = logging.getLogger(__name__)
 
 FORMATTED_CODE_REGEX = re.compile(
-    r"(?P<delim>(?P<block>```)|``?)"        # code delimiter: 1-3 backticks; (?P=block) only matches if it's a block
-    r"(?(block)(?:(?P<lang>[a-z]+)\n)?)"    # if we're in a block, match optional language (only letters plus newline)
-    r"(?:[ \t]*\n)*"                        # any blank (empty or tabs/spaces only) lines before the code
-    r"(?P<code>.*?)"                        # extract all code inside the markup
-    r"\s*"                                  # any more whitespace before the end of the code markup
-    r"(?P=delim)",                          # match the exact same delimiter from the start again
-    re.DOTALL | re.IGNORECASE               # "." also matches newlines, case insensitive
+    r"(?P<delim>(?P<block>```)|``?)"  # code delimiter: 1-3 backticks; (?P=block) only matches if it's a block
+    r"(?(block)(?:(?P<lang>[a-z]+)\n)?)"  # if we're in a block, match optional language (only letters plus newline)
+    r"(?:[ \t]*\n)*"  # any blank (empty or tabs/spaces only) lines before the code
+    r"(?P<code>.*?)"  # extract all code inside the markup
+    r"\s*"  # any more whitespace before the end of the code markup
+    r"(?P=delim)",  # match the exact same delimiter from the start again
+    re.DOTALL | re.IGNORECASE,  # "." also matches newlines, case insensitive
 )
 
 RAW_CODE_REGEX = re.compile(
-    r"^(?:[ \t]*\n)*"                       # any blank (empty or tabs/spaces only) lines before the code
-    r"(?P<code>.*?)"                        # extract all the rest as code
-    r"\s*$",                                # any trailing whitespace until the end of the string
-    re.DOTALL                               # "." also matches newlines
+    r"^(?:[ \t]*\n)*"  # any blank (empty or tabs/spaces only) lines before the code
+    r"(?P<code>.*?)"  # extract all the rest as code
+    r"\s*$",  # any trailing whitespace until the end of the string
+    re.DOTALL,  # "." also matches newlines
 )
 
 
@@ -47,9 +47,7 @@ class InternalEval(commands.Cog):
 
     @staticmethod
     def shorten_output(
-            output: str,
-            max_length: int = 1900,
-            placeholder: str = "\n[output truncated]"
+        output: str, max_length: int = 1900, placeholder: str = "\n[output truncated]"
     ) -> str:
         """
         Shorten the `output` so it's shorter than `max_length`.
@@ -73,7 +71,9 @@ class InternalEval(commands.Cog):
             shortened_output.append(placeholder)
             return "\n".join(shortened_output)
 
-        shortened_output = textwrap.shorten(output, width=max_length, placeholder=placeholder)
+        shortened_output = textwrap.shorten(
+            output, width=max_length, placeholder=placeholder
+        )
 
         if shortened_output.strip() == placeholder.strip():
             # `textwrap` was unable to find whitespace to shorten on, so it has
@@ -87,7 +87,9 @@ class InternalEval(commands.Cog):
         """Upload `internal eval` output to our pastebin and return the url."""
         try:
             async with self.bot.http_session.post(
-                "https://paste.pythondiscord.com/documents", data=output, raise_for_status=True
+                "https://paste.pythondiscord.com/documents",
+                data=output,
+                raise_for_status=True,
             ) as resp:
                 data = await resp.json()
 

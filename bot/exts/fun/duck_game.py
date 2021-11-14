@@ -14,7 +14,7 @@ from bot.bot import Bot
 from bot.constants import MODERATION_ROLES
 from bot.utils.decorators import with_role
 
-DECK = list(product(*[(0, 1, 2)]*4))
+DECK = list(product(*[(0, 1, 2)] * 4))
 
 GAME_DURATION = 180
 
@@ -29,7 +29,7 @@ INCORRECT_GOOSE = -1
 # while still making the end of the game unpredictable.
 # Note: this is *not* the same as the distribution of number of solutions.
 
-SOLN_DISTR = 0, 0.05, 0.05, 0.1, 0.15, 0.25, 0.2, 0.15, .05
+SOLN_DISTR = 0, 0.05, 0.05, 0.1, 0.15, 0.25, 0.2, 0.15, 0.05
 
 IMAGE_PATH = Path("bot", "resources", "fun", "all_cards.png")
 FONT_PATH = Path("bot", "resources", "fun", "LuckiestGuy-Regular.ttf")
@@ -42,7 +42,7 @@ CARD_HEIGHT = 97
 
 EMOJI_WRONG = "\u274C"
 
-ANSWER_REGEX = re.compile(r'^\D*(\d+)\D+(\d+)\D+(\d+)\D*$')
+ANSWER_REGEX = re.compile(r"^\D*(\d+)\D+(\d+)\D+(\d+)\D*$")
 
 HELP_TEXT = """
 **Each card has 4 features**
@@ -67,7 +67,7 @@ The second flight is valid because there are no 2:1 splits; each feature is eith
 
 def assemble_board_image(board: list[tuple[int]], rows: int, columns: int) -> Image:
     """Cut and paste images representing the given cards into an image representing the board."""
-    new_im = Image.new("RGBA", (CARD_WIDTH*columns, CARD_HEIGHT*rows))
+    new_im = Image.new("RGBA", (CARD_WIDTH * columns, CARD_HEIGHT * rows))
     draw = ImageDraw.Draw(new_im)
     for idx, card in enumerate(board):
         card_image = get_card_image(card)
@@ -75,7 +75,7 @@ def assemble_board_image(board: list[tuple[int]], rows: int, columns: int) -> Im
         top, left = row * CARD_HEIGHT, col * CARD_WIDTH
         new_im.paste(card_image, (left, top))
         draw.text(
-            xy=(left+5, top+5),  # magic numbers are buffers for the card labels
+            xy=(left + 5, top + 5),  # magic numbers are buffers for the card labels
             text=str(idx),
             fill=(0, 0, 0),
             font=LABEL_FONT,
@@ -97,7 +97,7 @@ def get_card_image(card: tuple[int]) -> Image:
 
 def as_trinary(card: tuple[int]) -> int:
     """Find the card's unique index by interpreting its features as trinary."""
-    return int(''.join(str(x) for x in card), base=3)
+    return int("".join(str(x) for x in card), base=3)
 
 
 class DuckGame:
@@ -150,12 +150,14 @@ class DuckGame:
         if self._solutions is None:
             self._solutions = set()
             for idx_a, card_a in enumerate(self.board):
-                for idx_b, card_b in enumerate(self.board[idx_a+1:], start=idx_a+1):
+                for idx_b, card_b in enumerate(
+                    self.board[idx_a + 1 :], start=idx_a + 1
+                ):
                     # Two points determine a line, and there are exactly 3 points per line in {0,1,2}^4.
                     # The completion of a line will only be a duplicate point if the other two points are the same,
                     # which is prevented by the triangle iteration.
                     completion = tuple(
-                        feat_a if feat_a == feat_b else 3-feat_a-feat_b
+                        feat_a if feat_a == feat_b else 3 - feat_a - feat_b
                         for feat_a, feat_b in zip(card_a, card_b)
                     )
                     try:
@@ -178,9 +180,9 @@ class DuckGamesDirector(commands.Cog):
         self.current_games = {}
 
     @commands.group(
-        name='duckduckduckgoose',
-        aliases=['dddg', 'ddg', 'duckduckgoose', 'duckgoose'],
-        invoke_without_command=True
+        name="duckduckduckgoose",
+        aliases=["dddg", "ddg", "duckduckgoose", "duckgoose"],
+        invoke_without_command=True,
     )
     @commands.cooldown(rate=1, per=2, type=commands.BucketType.channel)
     async def start_game(self, ctx: commands.Context) -> None:
@@ -189,7 +191,9 @@ class DuckGamesDirector(commands.Cog):
             await ctx.send("There's already a game running!")
             return
 
-        minimum_solutions, = random.choices(range(len(SOLN_DISTR)), weights=SOLN_DISTR)
+        (minimum_solutions,) = random.choices(
+            range(len(SOLN_DISTR)), weights=SOLN_DISTR
+        )
         game = DuckGame(minimum_solutions=minimum_solutions)
         game.running = True
         self.current_games[ctx.channel.id] = game
@@ -218,13 +222,15 @@ class DuckGamesDirector(commands.Cog):
             return
 
         game = self.current_games[channel.id]
-        if msg.content.strip().lower() == 'goose':
+        if msg.content.strip().lower() == "goose":
             # If all of the solutions have been claimed, i.e. the "goose" call is correct.
             if len(game.solutions) == len(game.claimed_answers):
                 try:
                     del self.current_games[channel.id]
                     game.scores[msg.author] += CORRECT_GOOSE
-                    await self.end_game(channel, game, end_message=f"{msg.author.display_name} GOOSED!")
+                    await self.end_game(
+                        channel, game, end_message=f"{msg.author.display_name} GOOSED!"
+                    )
                 except KeyError:
                     pass
             else:
@@ -248,12 +254,16 @@ class DuckGamesDirector(commands.Cog):
         if answer in game.solutions:
             game.claimed_answers[answer] = msg.author
             game.scores[msg.author] += CORRECT_SOLN
-            await self.append_to_found_embed(game, f"{str(answer):12s}  -  {msg.author.display_name}")
+            await self.append_to_found_embed(
+                game, f"{str(answer):12s}  -  {msg.author.display_name}"
+            )
         else:
             await msg.add_reaction(EMOJI_WRONG)
             game.scores[msg.author] += INCORRECT_SOLN
 
-    async def send_board_embed(self, ctx: commands.Context, game: DuckGame) -> discord.Message:
+    async def send_board_embed(
+        self, ctx: commands.Context, game: DuckGame
+    ) -> discord.Message:
         """Create and send an embed to display the board."""
         image = assemble_board_image(game.board, game.rows, game.columns)
         with BytesIO() as image_stream:
@@ -279,12 +289,14 @@ class DuckGamesDirector(commands.Cog):
     async def append_to_found_embed(self, game: DuckGame, text: str) -> None:
         """Append text to the claimed answers embed."""
         async with game.editing_embed:
-            found_embed, = game.found_msg.embeds
+            (found_embed,) = game.found_msg.embeds
             old_desc = found_embed.description or ""
             found_embed.description = f"{old_desc.rstrip()}\n{text}"
             await game.found_msg.edit(embed=found_embed)
 
-    async def end_game(self, channel: discord.TextChannel, game: DuckGame, end_message: str) -> None:
+    async def end_game(
+        self, channel: discord.TextChannel, game: DuckGame, end_message: str
+    ) -> None:
         """Edit the game embed to reflect the end of the game and mark the game as not running."""
         game.running = False
 
@@ -298,13 +310,17 @@ class DuckGamesDirector(commands.Cog):
             reverse=True,
         )
         scoreboard = "Final scores:\n\n"
-        scoreboard += "\n".join(f"{member.display_name}: {score}" for member, score in scores)
+        scoreboard += "\n".join(
+            f"{member.display_name}: {score}" for member, score in scores
+        )
         scoreboard_embed.description = scoreboard
         await channel.send(embed=scoreboard_embed)
 
         missed = [ans for ans in game.solutions if ans not in game.claimed_answers]
         if missed:
-            missed_text = "Flights everyone missed:\n" + "\n".join(f"{ans}" for ans in missed)
+            missed_text = "Flights everyone missed:\n" + "\n".join(
+                f"{ans}" for ans in missed
+            )
         else:
             missed_text = "All the flights were found!"
         await self.append_to_found_embed(game, f"\n{missed_text}")
