@@ -1,12 +1,13 @@
-import discord
-from discord.ext import commands
-from discord.ext.commands import Converter
-from bot.bot import Bot
 from typing import Union
 
-import dateutil
-from dateutil import parser
 import arrow
+import dateutil
+import discord
+from dateutil import parser
+from discord.ext import commands
+from discord.ext.commands import Converter
+
+from bot.bot import Bot
 
 # https://discord.com/developers/docs/reference#message-formatting-timestamp-styles
 TIMESTAMP_FORMATS = [
