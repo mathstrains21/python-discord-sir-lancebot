@@ -9,10 +9,24 @@ from dateutil import parser
 import arrow
 
 # https://discord.com/developers/docs/reference#message-formatting-timestamp-styles
-TIMESTAMP_FORMATS = ["H:mm A", "H:mm:ss A", "MM/DD/YYYY", "MMMM D, YYYY", "MMMM D, YYYY H:mm A",
-                     "dddd, MMMM D, YYYY hh:mm A "]
-STYLES = {"Epoch": "", "Short Time": "t", "Long Time": "T", "Short Date": "d", "Long Date": "D", "Short Date/Time": "f",
-          "Long Date/Time": "F", "Relative Time": "R"}
+TIMESTAMP_FORMATS = [
+    "H:mm A",
+    "H:mm:ss A",
+    "MM/DD/YYYY",
+    "MMMM D, YYYY",
+    "MMMM D, YYYY H:mm A",
+    "dddd, MMMM D, YYYY hh:mm A ",
+]
+STYLES = {
+    "Epoch": "",
+    "Short Time": "t",
+    "Long Time": "T",
+    "Short Date": "d",
+    "Long Date": "D",
+    "Short Date/Time": "f",
+    "Long Date/Time": "F",
+    "Relative Time": "R",
+}
 
 
 class RelativeDate(Converter):
@@ -26,9 +40,10 @@ class AbsoluteDate(Converter):
 
 
 class Epoch(commands.Cog):
-
     @commands.command(name="epoch")
-    async def epoch(self, ctx: commands.Context, *, date_time: Union[RelativeDate, AbsoluteDate]) -> None:
+    async def epoch(
+        self, ctx: commands.Context, *, date_time: Union[RelativeDate, AbsoluteDate]
+    ) -> None:
         epoch = int(date_time.timestamp())
         dropdown = TimeStampDropdown(self._format_dates(date_time), epoch)
         view = TimeStampMenuView(ctx, dropdown)
@@ -50,8 +65,10 @@ class TimeStampDropdown(discord.ui.Select):
         self.epoch: int = epoch
         super().__init__(
             placeholder="Format this epoch as a discord timestamp",
-            options=[discord.SelectOption(label=label, description=date_time) for label, date_time in
-                     zip(STYLES.keys(), formatted_times)]
+            options=[
+                discord.SelectOption(label=label, description=date_time)
+                for label, date_time in zip(STYLES.keys(), formatted_times)
+            ],
         )
 
     async def callback(self, interaction: discord.Interaction):
@@ -59,7 +76,9 @@ class TimeStampDropdown(discord.ui.Select):
         if selected == "Epoch":
             return await interaction.message.edit(content=f"`{self.epoch}`")
         else:
-            return await interaction.message.edit(content=fr"\<t:{self.epoch}:{STYLES[selected]}>")
+            return await interaction.message.edit(
+                content=fr"\<t:{self.epoch}:{STYLES[selected]}>"
+            )
 
 
 class TimeStampMenuView(discord.ui.View):
@@ -71,7 +90,9 @@ class TimeStampMenuView(discord.ui.View):
     async def interaction_check(self, interaction: discord.Interaction):
         """Check to ensure that the interacting user is the user who invoked the command."""
         if interaction.user != self.ctx.author:
-            embed = discord.Embed(description=f"Sorry, but this interaction can only be used by the original author.")
+            embed = discord.Embed(
+                description=f"Sorry, but this interaction can only be used by the original author."
+            )
             await interaction.response.send_message(embed=embed, ephemeral=True)
             return False
         else:
