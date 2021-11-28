@@ -31,20 +31,21 @@ STYLES = {
 
 
 class RelativeDate(Converter):
-    async def convert(self, ctx: commands.Context, argument: str) -> arrow.Arrow:
+    async def convert(self, ctx: commands.Context,
+                      argument: str) -> arrow.Arrow:
         return arrow.utcnow().dehumanize(argument)
 
 
 class AbsoluteDate(Converter):
-    async def convert(self, ctx: commands.Context, argument: str) -> arrow.Arrow:
+    async def convert(self, ctx: commands.Context,
+                      argument: str) -> arrow.Arrow:
         return arrow.get(dateutil.parser.parse(argument))
 
 
 class Epoch(commands.Cog):
     @commands.command(name="epoch")
-    async def epoch(
-        self, ctx: commands.Context, *, date_time: Union[RelativeDate, AbsoluteDate]
-    ) -> None:
+    async def epoch(self, ctx: commands.Context, *,
+                    date_time: Union[RelativeDate, AbsoluteDate]) -> None:
         epoch = int(date_time.timestamp())
         dropdown = TimeStampDropdown(self._format_dates(date_time), epoch)
         view = TimeStampMenuView(ctx, dropdown)
@@ -78,8 +79,7 @@ class TimeStampDropdown(discord.ui.Select):
             return await interaction.message.edit(content=f"`{self.epoch}`")
         else:
             return await interaction.message.edit(
-                content=fr"\<t:{self.epoch}:{STYLES[selected]}>"
-            )
+                content=fr"\<t:{self.epoch}:{STYLES[selected]}>")
 
 
 class TimeStampMenuView(discord.ui.View):
@@ -92,9 +92,11 @@ class TimeStampMenuView(discord.ui.View):
         """Check to ensure that the interacting user is the user who invoked the command."""
         if interaction.user != self.ctx.author:
             embed = discord.Embed(
-                description=f"Sorry, but this interaction can only be used by the original author."
+                description=
+                f"Sorry, but this interaction can only be used by the original author."
             )
-            await interaction.response.send_message(embed=embed, ephemeral=True)
+            await interaction.response.send_message(embed=embed,
+                                                    ephemeral=True)
             return False
         else:
             return True
